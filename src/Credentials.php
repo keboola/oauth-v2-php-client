@@ -17,7 +17,7 @@ class Credentials extends Common
      */
     public function get($componentId, $credentialsId)
     {
-        return $this->client->get("credentials/{$componentId}/{$credentialsId}");
+        return $this->apiGet("credentials/{$componentId}/{$credentialsId}");
     }
 
     /**
@@ -26,7 +26,7 @@ class Credentials extends Common
      */
     public function list($componentId)
     {
-        return $this->client->get("credentials/{$componentId}");
+        return $this->apiGet("credentials/{$componentId}");
     }
 
     /**
@@ -35,6 +35,6 @@ class Credentials extends Common
      */
     public function delete($componentId, $credentialsId)
     {
-        return $this->client->delete("credentials/{$componentId}/{$credentialsId}");
+        return $this->apiDelete("credentials/{$componentId}/{$credentialsId}");
     }
 }

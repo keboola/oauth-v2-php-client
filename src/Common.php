@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\RequestException,
     GuzzleHttp\Client;
 use Psr\Http\Message\RequestInterface,
     Psr\Http\Message\ResponseInterface;
+use Keboola\Utils\Utils;
 
 /**
  * @todo
@@ -45,7 +46,7 @@ class Common
     protected function getClient(array $headers)
     {
         $client = new Client([
-            'base_url' => $this->apiUrl, // ????
+            'base_uri' => $this->apiUrl,
             'headers' => array_merge(
                 $headers,
                 $this->defaultHeaders
@@ -59,6 +60,24 @@ class Common
         ));
 
         return $client;
+    }
+
+    protected function apiGet($url)
+    {
+        return Utils::json_decode($this->client->get($url)->getBody());
+    }
+
+    /**
+     * @todo check code = 204?
+     */
+    protected function apiDelete($url)
+    {
+        return $this->client->delete($url)->getBody();
+    }
+
+    protected function apiPost($url, $options)
+    {
+        return Utils::json_decode($this->client->post($url, $options));
     }
 
     /**

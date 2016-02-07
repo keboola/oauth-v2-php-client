@@ -31,7 +31,7 @@ class Manager extends Common
     {
         $this->validateApiDetails($details);
 
-        $this->client->post("manage", [
+        return $this->apiPost("manage", [
             'headers' => [
                 'X-StorageApi-Token' => $kbcToken
             ],
@@ -44,7 +44,7 @@ class Manager extends Common
      */
     public function delete($componentId)
     {
-        $this->client->delete("manage/{$componentId}");
+        return $this->apiDelete("manage/{$componentId}");
     }
 
     /**
@@ -53,7 +53,7 @@ class Manager extends Common
      */
     public function getDetail($componentId)
     {
-        $this->client->get("manage/{$componentId}");
+        return $this->apiGet("manage/{$componentId}");
     }
 
     /**
@@ -61,7 +61,7 @@ class Manager extends Common
      */
     public function listComponents()
     {
-        $this->client->get("manage");
+        return $this->apiGet("manage");
     }
 
     protected function validateApiDetails(array $details)
