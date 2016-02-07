@@ -15,7 +15,7 @@ class Credentials extends Common
      * @param string $credentialsId
      * @return object
      */
-    public function get($componentId, $credentialsId)
+    public function getDetail($componentId, $credentialsId)
     {
         return $this->apiGet("credentials/{$componentId}/{$credentialsId}");
     }
@@ -24,7 +24,7 @@ class Credentials extends Common
      * @param string $componentId
      * @return array
      */
-    public function list($componentId)
+    public function listCredentials($componentId)
     {
         return $this->apiGet("credentials/{$componentId}");
     }
