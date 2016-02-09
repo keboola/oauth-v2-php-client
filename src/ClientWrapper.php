@@ -1,7 +1,7 @@
 <?php
 namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Exception\RequestException,
+use GuzzleHttp\Exception\RequestException as GuzzleException,
     GuzzleHttp\Client;
 
 class ClientWrapper
@@ -20,8 +20,8 @@ class ClientWrapper
     {
         try {
             return call_user_func_array([$this->client, $name], $arguments);
-        } catch(RequestException $e) {
-            throw new
+        } catch(GuzzleException $e) {
+            throw new Exception\RequestException("Error communicating with OAuth API: " . $e->getMessage(), 0, $e);
         }
     }
 }

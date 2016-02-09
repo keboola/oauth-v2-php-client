@@ -13,7 +13,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \GuzzleHttp\Exception\ClientException
+     * @expectedException \Keboola\OAuthV2Api\Exception\RequestException
      * @expectedExceptionMessage Error validating Manage token: Invalid access token
      */
     public function testInvalidToken()
