@@ -10,10 +10,7 @@ use Psr\Http\Message\RequestInterface,
 use Keboola\Utils\Utils;
 
 /**
- * @todo
- * getClient here that creates the retry etc
- *  - accepts default headers as parameter
- * apiUrl
+ *
  */
 class Common
 {
@@ -23,7 +20,7 @@ class Common
     protected $apiUrl = 'https://syrup.keboola.com/oauth-v2/';
 
     /**
-     * @var Client
+     * @var ClientWrapper
      */
     protected $client;
 
@@ -59,7 +56,8 @@ class Common
             self::createExponentialDelay()
         ));
 
-        return $client;
+//         return $client;
+        return new ClientWrapper($client);
     }
 
     protected function apiGet($url)
