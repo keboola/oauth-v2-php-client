@@ -2,8 +2,8 @@
 use Keboola\OAuthV2Api\Common,
     Keboola\OAuthV2Api\Credentials;
 use GuzzleHttp\Client,
-    GuzzleHttp\Message\Response,
-    GuzzleHttp\Stream\Stream,
+    GuzzleHttp\Psr7\Response,
+    GuzzleHttp\Psr7\Stream,
     GuzzleHttp\Handler\MockHandler;
 
 class CommonTest extends \PHPUnit_Framework_TestCase
@@ -15,7 +15,7 @@ class CommonTest extends \PHPUnit_Framework_TestCase
         $guzzle = new Client();
 
         $mock = new MockHandler([
-            new Response(200, [], Stream::factory($body))
+            new Response(200, [], new Stream($body))
         ]);
         $guzzle->getEmitter()->attach($mock);
 
