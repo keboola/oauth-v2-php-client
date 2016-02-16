@@ -37,6 +37,11 @@ class Common
     ];
 
     /**
+     * @var bool
+     */
+    protected $returnArrays = false;
+
+    /**
      * @param array $headers
      * @return Client
      */
@@ -62,7 +67,7 @@ class Common
 
     protected function apiGet($url)
     {
-        return Utils::json_decode($this->client->get($url)->getBody());
+        return Utils::json_decode($this->client->get($url)->getBody(), $this->returnArrays);
     }
 
     /**
@@ -75,7 +80,7 @@ class Common
 
     protected function apiPost($url, $options)
     {
-        return Utils::json_decode($this->client->post($url, $options));
+        return Utils::json_decode($this->client->post($url, $options), $this->returnArrays);
     }
 
     /**
@@ -106,5 +111,13 @@ class Common
         return function ($retries) {
             return (int)pow(2, $retries - 1) * 1000;
         };
+    }
+
+    /**
+     * @param bool $enable
+     */
+    public function enableReturnArrays($enable)
+    {
+        $this->returnArrays = (bool) $enable;
     }
 }
