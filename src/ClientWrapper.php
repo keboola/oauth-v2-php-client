@@ -20,8 +20,18 @@ class ClientWrapper
     {
         try {
             return call_user_func_array([$this->client, $name], $arguments);
-        } catch(GuzzleException $e) {
-            throw new Exception\RequestException("Error communicating with OAuth API: " . $e->getMessage(), 0, $e);
+        } catch (GuzzleException $e) {
+            $message = $e->getMessage();
+            if ($e->getResponse() && $e->getResponse()->getBody()) {
+                try {
+                    $response = \Keboola\Utils\jsonDecode($e->getResponse()->getBody(), true);
+                    if (!empty($response['message'])) {
+                        $message = $response['message'];
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+            throw new Exception\RequestException("OAuth API error: " . $message, $e->getCode(), $e);
         }
     }
 }
