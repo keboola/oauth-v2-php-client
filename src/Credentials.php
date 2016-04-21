@@ -1,7 +1,6 @@
 <?php
-namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Client;
+namespace Keboola\OAuthV2Api;
 
 class Credentials extends Common
 {

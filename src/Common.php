@@ -1,14 +1,11 @@
 <?php
 namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException,
-    GuzzleHttp\HandlerStack,
-    GuzzleHttp\Middleware,
-    GuzzleHttp\Client;
-use Psr\Http\Message\RequestInterface,
-    Psr\Http\Message\ResponseInterface;
-use Keboola\Utils\Utils;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Client;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -44,6 +41,7 @@ class Common
 
     /**
      * @param array $headers
+     * @param array $config
      * @return Client
      */
     protected function getClient(array $headers, array $config = [])
@@ -90,6 +88,8 @@ class Common
 
     /**
      * @todo Lib to wrap this
+     * @param $maxRetries
+     * @return \Closure
      */
     private static function createDefaultDecider($maxRetries)
     {
