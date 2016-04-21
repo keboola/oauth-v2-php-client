@@ -1,6 +1,7 @@
 <?php
 namespace Keboola\OAuthV2Api;
 
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException,
     GuzzleHttp\HandlerStack,
     GuzzleHttp\Middleware,
@@ -27,7 +28,7 @@ class Common
     /**
      * @var int
      */
-    protected $backoffMaxTries = 10;
+    protected static $backOffMaxRetries = 10;
 
     /**
      * @var array
@@ -45,23 +46,27 @@ class Common
      * @param array $headers
      * @return Client
      */
-    protected function getClient(array $headers)
+    protected function getClient(array $headers, array $config = [])
     {
+        // Initialize handlers (start with those supplied in constructor)
+        if (isset($config['handler']) && is_a($config['handler'], HandlerStack::class)) {
+            $handlerStack = HandlerStack::create($config['handler']);
+        } else {
+            $handlerStack = HandlerStack::create();
+        }
+        $handlerStack->push(Middleware::retry(
+            self::createDefaultDecider(self::$backOffMaxRetries),
+            self::createExponentialDelay()
+        ));
+
         $client = new Client([
             'base_uri' => $this->apiUrl,
             'headers' => array_merge(
                 $headers,
                 $this->defaultHeaders
-            )
+            ),
+            'handler' => $handlerStack
         ]);
-
-        $handlerStack = HandlerStack::create();
-        $handlerStack->push(Middleware::retry(
-            self::createDefaultDecider($this->backoffMaxTries),
-            self::createExponentialDelay()
-        ));
-
-//         return $client;
         return new ClientWrapper($client);
     }
 
@@ -86,7 +91,7 @@ class Common
     /**
      * @todo Lib to wrap this
      */
-    private static function createDefaultDecider($maxRetries = 3)
+    private static function createDefaultDecider($maxRetries)
     {
         return function (
             $retries,
@@ -98,7 +103,7 @@ class Common
                 return false;
             } elseif ($response && $response->getStatusCode() > 499) {
                 return true;
-            } elseif ($error) {
+            } elseif ($error && $error->getCode() > 499) {
                 return true;
             } else {
                 return false;

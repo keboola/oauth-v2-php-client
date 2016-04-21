@@ -5,15 +5,15 @@ use GuzzleHttp\Client;
 
 class Credentials extends Common
 {
-    public function __construct($sapiToken)
+    public function __construct($sapiToken, $config = [])
     {
-        $this->client = $this->getClient(['X-StorageApi-Token' => $sapiToken]);
+        $this->client = $this->getClient(['X-StorageApi-Token' => $sapiToken], $config);
     }
 
     /**
      * @param string $componentId
      * @param string $credentialsId
-     * @return object
+     * @return object|array
      */
     public function getDetail($componentId, $credentialsId)
     {

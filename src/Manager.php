@@ -18,9 +18,9 @@ class Manager extends Common
         "oauth_version"
     ];
 
-    public function __construct($manageToken)
+    public function __construct($manageToken, $config = [])
     {
-        $this->client = $this->getClient(['X-KBC-ManageApiToken' => $manageToken]);
+        $this->client = $this->getClient(['X-KBC-ManageApiToken' => $manageToken], $config);
     }
 
     /**
