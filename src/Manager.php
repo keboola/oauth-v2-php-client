@@ -1,7 +1,6 @@
 <?php
-namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Client;
+namespace Keboola\OAuthV2Api;
 
 /**
  *
@@ -18,14 +17,15 @@ class Manager extends Common
         "oauth_version"
     ];
 
-    public function __construct($manageToken)
+    public function __construct($manageToken, $config = [])
     {
-        $this->client = $this->getClient(['X-KBC-ManageApiToken' => $manageToken]);
+        $this->client = $this->getClient(['X-KBC-ManageApiToken' => $manageToken], $config);
     }
 
     /**
      * @param array $details ## more than that!
      * @param string $kbcToken ## TODO remove once docker encryption can do image encryption w/o user token
+     * @return array|object
      */
     public function add(array $details, $kbcToken)
     {
@@ -66,7 +66,7 @@ class Manager extends Common
 
     protected function validateApiDetails(array $details)
     {
-        foreach($this->requiredApiDetails as $key) {
+        foreach ($this->requiredApiDetails as $key) {
             if (empty($details[$key])) {
                 throw new \InvalidArgumentException("Missing key '{$key}'.");
             }

@@ -12,3 +12,4 @@ docs/*.pyc
 set-env.sh
 *.kdev4
 .kdev4
+/config.php

@@ -3,10 +3,12 @@
     "description": "Keboola OAuth v2 API Client",
     "require": {
         "guzzlehttp/guzzle": "^6.1",
-        "keboola/php-utils": "~0.1.8"
+        "keboola/php-utils": "~1.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.0"
+        "phpunit/phpunit": "^5.0",
+        "codeclimate/php-test-reporter": "~0.2",
+        "squizlabs/php_codesniffer": "~2.4"        
     },
     "autoload": {
         "psr-4": {

@@ -1,13 +1,11 @@
 <?php
 namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Exception\RequestException,
-    GuzzleHttp\HandlerStack,
-    GuzzleHttp\Middleware,
-    GuzzleHttp\Client;
-use Psr\Http\Message\RequestInterface,
-    Psr\Http\Message\ResponseInterface;
-use Keboola\Utils\Utils;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Client;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -27,7 +25,7 @@ class Common
     /**
      * @var int
      */
-    protected $backoffMaxTries = 10;
+    protected static $backOffMaxRetries = 10;
 
     /**
      * @var array
@@ -43,31 +41,36 @@ class Common
 
     /**
      * @param array $headers
+     * @param array $config
      * @return Client
      */
-    protected function getClient(array $headers)
+    protected function getClient(array $headers, array $config = [])
     {
+        // Initialize handlers (start with those supplied in constructor)
+        if (isset($config['handler']) && is_a($config['handler'], HandlerStack::class)) {
+            $handlerStack = HandlerStack::create($config['handler']);
+        } else {
+            $handlerStack = HandlerStack::create();
+        }
+        $handlerStack->push(Middleware::retry(
+            self::createDefaultDecider(self::$backOffMaxRetries),
+            self::createExponentialDelay()
+        ));
+
         $client = new Client([
             'base_uri' => $this->apiUrl,
             'headers' => array_merge(
                 $headers,
                 $this->defaultHeaders
-            )
+            ),
+            'handler' => $handlerStack
         ]);
-
-        $handlerStack = HandlerStack::create();
-        $handlerStack->push(Middleware::retry(
-            self::createDefaultDecider($this->backoffMaxTries),
-            self::createExponentialDelay()
-        ));
-
-//         return $client;
         return new ClientWrapper($client);
     }
 
     protected function apiGet($url)
     {
-        return Utils::json_decode($this->client->get($url)->getBody(), $this->returnArrays);
+        return \Keboola\Utils\jsonDecode($this->client->get($url)->getBody(), $this->returnArrays);
     }
 
     /**
@@ -80,13 +83,15 @@ class Common
 
     protected function apiPost($url, $options)
     {
-        return Utils::json_decode($this->client->post($url, $options), $this->returnArrays);
+        return \Keboola\Utils\jsonDecode($this->client->post($url, $options), $this->returnArrays);
     }
 
     /**
      * @todo Lib to wrap this
+     * @param $maxRetries
+     * @return \Closure
      */
-    private static function createDefaultDecider($maxRetries = 3)
+    private static function createDefaultDecider($maxRetries)
     {
         return function (
             $retries,
@@ -98,7 +103,7 @@ class Common
                 return false;
             } elseif ($response && $response->getStatusCode() > 499) {
                 return true;
-            } elseif ($error) {
+            } elseif ($error && $error->getCode() > 499) {
                 return true;
             } else {
                 return false;

@@ -1,19 +1,18 @@
 <?php
-namespace Keboola\OAuthV2Api;
 
-use GuzzleHttp\Client;
+namespace Keboola\OAuthV2Api;
 
 class Credentials extends Common
 {
-    public function __construct($sapiToken)
+    public function __construct($sapiToken, $config = [])
     {
-        $this->client = $this->getClient(['X-StorageApi-Token' => $sapiToken]);
+        $this->client = $this->getClient(['X-StorageApi-Token' => $sapiToken], $config);
     }
 
     /**
      * @param string $componentId
      * @param string $credentialsId
-     * @return object
+     * @return object|array
      */
     public function getDetail($componentId, $credentialsId)
     {
