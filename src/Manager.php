@@ -24,17 +24,13 @@ class Manager extends Common
 
     /**
      * @param array $details ## more than that!
-     * @param string $kbcToken ## TODO remove once docker encryption can do image encryption w/o user token
      * @return array|object
      */
-    public function add(array $details, $kbcToken)
+    public function add(array $details)
     {
         $this->validateApiDetails($details);
 
         return $this->apiPost("manage", [
-            'headers' => [
-                'X-StorageApi-Token' => $kbcToken
-            ],
             'form_params' => $details
         ]);
     }
