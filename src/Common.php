@@ -83,7 +83,10 @@ class Common
 
     protected function apiPost($url, $options)
     {
-        return \Keboola\Utils\jsonDecode($this->client->post($url, $options), $this->returnArrays);
+        return \Keboola\Utils\jsonDecode(
+            $this->client->post($url, $options)->getBody()->getContents(),
+            $this->returnArrays
+        );
     }
 
     /**
