@@ -6,7 +6,7 @@
 
 ## Usage examples
 
-Table write:
+### List credentials
 
 ```php
 require 'vendor/autoload.php';
