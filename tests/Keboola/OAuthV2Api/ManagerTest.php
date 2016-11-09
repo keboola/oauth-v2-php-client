@@ -42,13 +42,13 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack]);
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
         $result = $manager->listComponents();
         $this->assertCount(2, $result);
 
         /** @var Request $request */
         $request = $container[0]['request'];
-        $this->assertEquals("https://syrup.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
+        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
         $this->assertEquals("GET", $request->getMethod());
         $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
     }
@@ -76,7 +76,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack]);
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
         try {
             $manager->listComponents();
             $this->fail("Invalid token must cause exception.");
@@ -124,7 +124,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack]);
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
         $result = $manager->listComponents();
         $this->assertCount(2, $result);
     }
@@ -147,7 +147,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $prop = $refl->getProperty('backOffMaxRetries');
         $prop->setAccessible(true);
         $prop->setValue(2);
-        $manager = new Manager('some-token', ['handler' => $stack]);
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
         try {
             $manager->listComponents();
             $this->fail("Invalid token must cause exception.");
