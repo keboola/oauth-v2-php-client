@@ -37,7 +37,7 @@ class CredentialsTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $cred = new Credentials('some-token', ['handler' => $stack]);
+        $cred = new Credentials('some-token', ['handler' => $stack, 'url' => 'https://jezevec.keboola.com/oauth-v2/']);
         $result = $cred->listCredentials('wr-dropbox');
         $this->assertInternalType('array', $result);
         $this->assertCount(1, $result);
@@ -46,7 +46,7 @@ class CredentialsTest extends \PHPUnit_Framework_TestCase
         /** @var Request $request */
         $request = $container[0]['request'];
         $this->assertEquals(
-            "https://syrup.keboola.com/oauth-v2/credentials/wr-dropbox",
+            "https://jezevec.keboola.com/oauth-v2/credentials/wr-dropbox",
             $request->getUri()->__toString()
         );
         $this->assertEquals("GET", $request->getMethod());
@@ -81,7 +81,7 @@ class CredentialsTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $cred = new Credentials('some-token', ['handler' => $stack]);
+        $cred = new Credentials('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
         $result = $cred->getDetail('wr-dropbox', 'credentials-id');
         $this->assertInternalType('object', $result);
         $this->assertObjectHasAttribute('#appSecret', $result);
@@ -115,7 +115,7 @@ class CredentialsTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $cred = new Credentials('some-token', ['handler' => $stack]);
+        $cred = new Credentials('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
         $cred->enableReturnArrays(true);
         $result = $cred->getDetail('wr-dropbox', 'credentials-id');
         $this->assertInternalType('array', $result);
