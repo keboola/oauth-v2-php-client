@@ -53,6 +53,18 @@ class Manager extends Common
     }
 
     /**
+     * @param $componentId
+     * @param array $details
+     * @return array|object
+     */
+    public function update($componentId, array $details)
+    {
+        return $this->apiPatch("manage/{$componentId}", [
+            'form_params' => $details
+        ]);
+    }
+
+    /**
      * @return array
      */
     public function listComponents()

@@ -69,7 +69,8 @@ class Common
 
     protected function apiGet($url)
     {
-        return \Keboola\Utils\jsonDecode($this->client->get($url)->getBody(), $this->returnArrays);
+        $response = $this->client->get($url)->getBody();
+        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
     }
 
     /**
@@ -82,7 +83,14 @@ class Common
 
     protected function apiPost($url, $options)
     {
-        return \Keboola\Utils\jsonDecode($this->client->post($url, $options), $this->returnArrays);
+        $response = $this->client->post($url, $options)->getBody();
+        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
+    }
+
+    protected function apiPatch($url, $options)
+    {
+        $response = $this->client->patch($url, $options)->getBody();
+        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
     }
 
     /**

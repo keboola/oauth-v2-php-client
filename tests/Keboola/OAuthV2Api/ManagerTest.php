@@ -53,6 +53,77 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
     }
 
+    public function testUpdateComponent()
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{
+                    "id": "ex-dropbox",
+                    "friendly_name": "Dropbox Extractor",
+                    "app_key": "1234",
+                    "oauth_version": "2.0"
+                }'
+            )
+        ]);
+
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
+        $manager->update('ex-dropbox', ['friendly_name' => 'Dropbox Extractor 2']);
+
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage/ex-dropbox", $request->getUri()->__toString());
+        $this->assertEquals("PATCH", $request->getMethod());
+        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+    }
+
+    public function testCreateComponent()
+    {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{
+                    "id": "ex-dropbox",
+                    "friendly_name": "Dropbox Extractor",
+                    "app_key": "1234",
+                    "oauth_version": "2.0"
+                }'
+            )
+        ]);
+
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
+        $details = [
+            'component_id' => 'ex-dropbox',
+            'friendly_name' => 'Dropbox Extractor 2',
+            'app_key' => 'test',
+            'app_secret' => 'test',
+            'auth_url' => 'test',
+            'token_url' => 'test',
+            'oauth_version' => '2.0'
+        ];
+        $manager->add($details);
+
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
+        $this->assertEquals("POST", $request->getMethod());
+        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+    }
+
     public function testInvalidToken()
     {
         $mock = new MockHandler([
