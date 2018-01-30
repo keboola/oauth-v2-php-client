@@ -13,6 +13,11 @@ use Psr\Http\Message\ResponseInterface;
 class Common
 {
     /**
+     * @var string
+     */
+    protected $apiUrl = 'https://syrup.keboola.com/oauth-v2/';
+
+    /**
      * @var ClientWrapper
      */
     protected $client;
@@ -37,12 +42,13 @@ class Common
     /**
      * @param array $headers
      * @param array $config
-     * @return Client
+     * @return ClientWrapper
+     * @throws \Exception
      */
     protected function getClient(array $headers, array $config = [])
     {
-        if (!isset($config['url'])) {
-            throw new \Exception('url is required. e.g. https://syrup.keboola.com/oauth-v2/');
+        if (isset($config['url'])) {
+            $this->apiUrl = $config['url'];
         }
 
         // Initialize handlers (start with those supplied in constructor)
@@ -57,13 +63,14 @@ class Common
         ));
 
         $client = new Client([
-            'base_uri' => $config['url'],
+            'base_uri' => $this->apiUrl,
             'headers' => array_merge(
                 $headers,
                 $this->defaultHeaders
             ),
             'handler' => $handlerStack
         ]);
+
         return new ClientWrapper($client);
     }
 
