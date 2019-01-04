@@ -4,6 +4,7 @@ php:
 notifications:
   email: false
 install:
+  - curl -sS --fail https://getcomposer.org/installer | php 
   - php -d memory_limit=-1 composer.phar install -n --no-scripts
 script:
   - ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
