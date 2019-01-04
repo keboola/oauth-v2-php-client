@@ -1,8 +1,6 @@
 language: php
 php:
   - 5.6
-notifications:
-  email: false
 install:
   - composer install --dev --no-scripts
 script:
@@ -12,4 +10,6 @@ after_success:
   - ./vendor/bin/test-reporter --stdout > codeclimate.json
   - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"
 notifications:
-  slack: keboola:0jOxekM6lCMVvdiEDZwNECKo
+  email: false
+  slack:
+    secure: ZHAMqhpLCG9Xx1YpAb6bV4P8s6llp7GPEmjvze2JgguDmQlfzT4XDvg/Hu/Svt3exMK9cM7avjzhc1+a28qPrJEZIPyY4QYpWHlsjib/JFNy96QoMXB90whkO5GDRNCCBhCu1p86/lRd6LaLYJlhvO8rtg1Hqcigw6HYPy6hOO+s46Y9Q6fxv+LxshMuwu0dnTlS4LUZY6+yLWRNXTtmwsXT2qr6g8vU4TX17b2Gss5qcKfe3ogK33l4uDG8a0v0CM1hCGBnoAwxJfy0yzCc8XLn9snvLEp19T+SKQZFtqdZ/v5uYX73UCWGARB+GeJeqJ/WH2zBZVLyBbVrNv4qdZVACel6hYmGWBcOVUmz8lFCy9xIElzZCX/3t/xSJ9i8hZfiWzywk+5Htt3XiTYCSpTOYtCVutT6KfRqKZ14V2/YL0XQHRpX2sbp1PgQTGI4p7V08w3A5ydIjxKvYGOtJWi0NXBPyMzTVGWk8+zaR9yBuooRm9I5Gbkb8sKHMWTn8XRpCr7wmOiLAtqnz9cXNoPGexP+NKUZQYK1KaKnIgfnKfnUhIEzAFYQBW1b8AkV5xJeC8+wz2o956YJdCa+2Q+wOMN/rV369vJin3rWYgIXfoIAhq8Ol/M44vHR3ZAZ9dRk5cBUuzJafmpsW/XnFWhseKkTNOmU6coBJkfiLQQ=
