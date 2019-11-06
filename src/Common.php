@@ -68,7 +68,8 @@ class Common
                 $headers,
                 $this->defaultHeaders
             ),
-            'handler' => $handlerStack
+            'handler' => $handlerStack,
+            'verify' => isset($config['verify']) ? $config['verify'] : true
         ]);
 
         return new ClientWrapper($client);
