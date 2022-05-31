@@ -22,3 +22,7 @@ $credentials = new Credentials(
 $result = $credentials->listCredentials('keboola.ex-google-drive');
 ```
 
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
