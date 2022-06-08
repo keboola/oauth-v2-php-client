@@ -1,0 +1,11 @@
+version: "2"
+services:
+  # for development purposes
+  ci: &ci
+    build: .
+    command: ['sh', '-c', 'composer ci']
+
+  tests-local:
+    <<: *ci
+    volumes:
+      - ./:/code
