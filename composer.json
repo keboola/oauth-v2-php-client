@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": "^6.1",
+        "guzzlehttp/guzzle": "^7.0",
         "keboola/php-utils": "~2.0"
     },
     "require-dev": {
