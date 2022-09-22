@@ -1,15 +1,4 @@
-phpunit.xml
-composer.phar
-composer.lock
-composer-test.lock
 vendor/
-build/artifacts/
-artifacts/
-docs/_build
-docs/*.pyc
 .idea
-.DS_STORE
 set-env.sh
-*.kdev4
-.kdev4
-/config.php
+/.phpunit.result.cache

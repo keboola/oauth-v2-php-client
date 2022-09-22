@@ -9,12 +9,16 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": "^7.0",
-        "keboola/php-utils": "~2.0"
+        "php": ">=7.4",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.0",
-        "keboola/coding-standard": "<=7.0"        
+        "keboola/coding-standard": ">=14.0",
+        "phpstan/phpstan": "^1.8",
+        "phpstan/phpstan-phpunit": "^1.1",
+        "phpunit/phpunit": "^9.5",
+        "sempro/phpunit-pretty-print": "^1.4"
     },
     "autoload": {
         "psr-4": {
@@ -23,18 +27,29 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Keboola\\OAuthV2ApiTest\\": "tests/"
+            "Keboola\\OAuthV2Api\\Tests\\": "tests/"
         }
     },
      "scripts": {
-        "tests": "phpunit",
-        "phpcs": "phpcs --extensions=php src tests",
-        "build": [
-            "@tests"
-        ],
-        "ci": [
-            "@composer validate --no-check-all --strict",
-            "@build"
-        ]
+         "tests": "phpunit --coverage-clover build/logs/clover.xml --coverage-xml=build/logs/coverage-xml --log-junit=build/logs/phpunit.junit.xml",
+         "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
+         "phpcs": "phpcs --extensions=php src tests",
+         "phpcbf": "phpcbf --extensions=php src tests",
+         "build": [
+             "@phpcs",
+             "@phpstan",
+             "@tests"
+         ],
+         "ci": [
+             "@composer validate --no-check-all --strict",
+             "@build"
+         ]
+    },
+    "config": {
+        "sort-packages": true,
+        "lock": false,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\OAuthV2Api\Tests;
 
 use GuzzleHttp\Handler\MockHandler;
@@ -7,15 +9,16 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Keboola\OAuthV2Api\Common;
-use Keboola\OAuthV2Api\Exception\RequestException;
+use Keboola\OAuthV2Api\Exception\ClientException;
 use Keboola\OAuthV2Api\Manager;
+use PHPUnit\Framework\TestCase;
 
-class ManagerTest extends \PHPUnit_Framework_TestCase
+class ManagerTest extends TestCase
 {
-    public function testListComponents()
+    public function testListComponents(): void
     {
-        $mock = new MockHandler([
+        $mock = new MockHandler(
+            [
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
@@ -33,8 +36,9 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
                         "oauth_version": "2.0"
                     }
                 ]'
-            )
-        ]);
+            ),
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -42,20 +46,24 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+        );
         $result = $manager->listComponents();
-        $this->assertCount(2, $result);
+        self::assertCount(2, $result);
 
         /** @var Request $request */
         $request = $container[0]['request'];
-        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
-        $this->assertEquals("GET", $request->getMethod());
-        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+        self::assertSame('https://sunar.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
+        self::assertSame('GET', $request->getMethod());
+        self::assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testUpdateComponent()
+    public function testUpdateComponent(): void
     {
-        $mock = new MockHandler([
+        $mock = new MockHandler(
+            [
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
@@ -65,8 +73,9 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
                     "app_key": "1234",
                     "oauth_version": "2.0"
                 }'
-            )
-        ]);
+            ),
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -74,19 +83,26 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+        );
         $manager->update('ex-dropbox', ['friendly_name' => 'Dropbox Extractor 2']);
 
         /** @var Request $request */
         $request = $container[0]['request'];
-        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage/ex-dropbox", $request->getUri()->__toString());
-        $this->assertEquals("PATCH", $request->getMethod());
-        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+        $this->assertSame(
+            'https://sunar.keboola.com/oauth-v2/manage/ex-dropbox',
+            $request->getUri()->__toString()
+        );
+        $this->assertSame('PATCH', $request->getMethod());
+        $this->assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testCreateComponent()
+    public function testCreateComponent(): void
     {
-        $mock = new MockHandler([
+        $mock = new MockHandler(
+            [
             new Response(
                 200,
                 ['Content-Type' => 'application/json'],
@@ -96,8 +112,9 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
                     "app_key": "1234",
                     "oauth_version": "2.0"
                 }'
-            )
-        ]);
+            ),
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -105,7 +122,10 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+        );
         $details = [
             'component_id' => 'ex-dropbox',
             'friendly_name' => 'Dropbox Extractor 2',
@@ -113,20 +133,21 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
             'app_secret' => 'test',
             'auth_url' => 'test',
             'token_url' => 'test',
-            'oauth_version' => '2.0'
+            'oauth_version' => '2.0',
         ];
         $manager->add($details);
 
         /** @var Request $request */
         $request = $container[0]['request'];
-        $this->assertEquals("https://sunar.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
-        $this->assertEquals("POST", $request->getMethod());
-        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+        $this->assertSame('https://sunar.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testInvalidToken()
+    public function testInvalidToken(): void
     {
-        $mock = new MockHandler([
+        $mock = new MockHandler(
+            [
             new Response(
                 400,
                 ['Content-Type' => 'application/json'],
@@ -138,8 +159,9 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
                     "exceptionId": "oauth-v2-1234",
                     "runId": 0
                  }'
-            )
-        ]);
+            ),
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -147,47 +169,52 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']
+        );
         try {
             $manager->listComponents();
-            $this->fail("Invalid token must cause exception.");
-        } catch (RequestException $e) {
-            $this->assertContains('Invalid access token', $e->getMessage());
+            self::fail('Invalid token must cause exception.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('Invalid access token', $e->getMessage());
         }
 
         /** @var Request $request */
         $request = $container[0]['request'];
-        $this->assertEquals("https://syrup.keboola.com/oauth-v2/manage", $request->getUri()->__toString());
-        $this->assertEquals("GET", $request->getMethod());
-        $this->assertEquals("some-token", $request->getHeader("x-kbc-manageapitoken")[0]);
+        self::assertSame('https://syrup.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
+        self::assertSame('GET', $request->getMethod());
+        self::assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testRetry()
+    public function testRetry(): void
     {
-        $mock = new MockHandler([
-            new Response(500, ['Content-Type' => 'application/json'], ''),
-            new Response(500, ['Content-Type' => 'application/json'], ''),
-            new Response(500, ['Content-Type' => 'application/json'], ''),
-            new Response(500, ['Content-Type' => 'application/json'], ''),
-            new Response(
-                200,
-                ['Content-Type' => 'application/json'],
-                '[
-                    {
-                        "id": "ex-dropbox",
-                        "friendly_name": "Dropbox Extractor",
-                        "app_key": "1234",
-                        "oauth_version": "2.0"
-                    },
-                    {
-                        "id": "wr-dropbox",
-                        "friendly_name": "Dropbox Writer",
-                        "app_key": "5678",
-                        "oauth_version": "2.0"
-                    }
-                ]'
-            )
-        ]);
+        $mock = new MockHandler(
+            [
+                new Response(500, ['Content-Type' => 'application/json'], ''),
+                new Response(500, ['Content-Type' => 'application/json'], ''),
+                new Response(500, ['Content-Type' => 'application/json'], ''),
+                new Response(500, ['Content-Type' => 'application/json'], ''),
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json'],
+                    '[
+                        {
+                            "id": "ex-dropbox",
+                            "friendly_name": "Dropbox Extractor",
+                            "app_key": "1234",
+                            "oauth_version": "2.0"
+                        },
+                        {
+                            "id": "wr-dropbox",
+                            "friendly_name": "Dropbox Writer",
+                            "app_key": "5678",
+                            "oauth_version": "2.0"
+                        }
+                    ]'
+                ),
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -195,18 +222,23 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']
+        );
         $result = $manager->listComponents();
-        $this->assertCount(2, $result);
+        self::assertCount(2, $result);
     }
 
-    public function testRetryFail()
+    public function testRetryFail(): void
     {
-        $mock = new MockHandler([
+        $mock = new MockHandler(
+            [
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], 'Really bad server error'),
-        ]);
+            ]
+        );
 
         // Add the history middleware to the handler stack.
         $container = [];
@@ -214,16 +246,15 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $refl = new \ReflectionClass(Common::class);
-        $prop = $refl->getProperty('backOffMaxRetries');
-        $prop->setAccessible(true);
-        $prop->setValue(2);
-        $manager = new Manager('some-token', ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']);
+        $manager = new Manager(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/', 'backoffMaxTries' => 2]
+        );
         try {
             $manager->listComponents();
-            $this->fail("Invalid token must cause exception.");
-        } catch (RequestException $e) {
-            $this->assertContains('Really bad server error', $e->getMessage());
+            self::fail('Invalid token must cause exception.');
+        } catch (ClientException $e) {
+            self::assertStringContainsString('Really bad server error', $e->getMessage());
         }
     }
 }
