@@ -1,63 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\OAuthV2Api;
+
+use InvalidArgumentException;
 
 class Credentials extends Common
 {
-    public function __construct($sapiToken, $config = [])
+    public function __construct(string $sapiToken, array $config)
     {
-        $this->client = $this->getClient(['X-StorageApi-Token' => $sapiToken], $config);
+        parent::__construct(['X-StorageApi-Token' => $sapiToken], $config);
+    }
+
+    public function getDetail(string $componentId, string $credentialsId): array
+    {
+        return $this->apiGet(sprintf('credentials/%s/%s', $componentId, $credentialsId));
+    }
+
+    public function listCredentials(string $componentId): array
+    {
+        return $this->apiGet(sprintf('credentials/%s', $componentId));
+    }
+
+    public function delete(string $componentId, string $credentialsId): void
+    {
+        $this->apiDelete(sprintf('credentials/%s/%s', $componentId, $credentialsId));
     }
 
     /**
-     * @param string $componentId
-     * @param string $credentialsId
-     * @return object|array
+     * @param array{
+     *  'id': string,
+     *  'authorizedFor': string,
+     *  'data': array
+     * } $credentials
      */
-    public function getDetail($componentId, $credentialsId)
-    {
-        return $this->apiGet("credentials/{$componentId}/{$credentialsId}");
-    }
-
-    /**
-     * @param string $componentId
-     * @return array
-     */
-    public function listCredentials($componentId)
-    {
-        return $this->apiGet("credentials/{$componentId}");
-    }
-
-    /**
-     * @param string $componentId
-     * @param string $credentialsId
-     */
-    public function delete($componentId, $credentialsId)
-    {
-        return $this->apiDelete("credentials/{$componentId}/{$credentialsId}");
-    }
-
-    /**
-     * @param $componentId
-     * @param array $credentials
-     *  - id (string) - unique identifier
-     *  - authorizedFor (string) - name of the owner of the credentials
-     *  - data (array) - credentials data ie. access token
-     * @return mixed
-     */
-    public function add($componentId, array $credentials)
+    public function add(string $componentId, array $credentials): array
     {
         $this->validateCredentials($credentials);
-        return $this->apiPost("credentials/{$componentId}", [
-            'form_params' => $credentials
-        ]);
+        return $this->apiPost(sprintf('credentials/%s', $componentId), $credentials);
     }
 
-    protected function validateCredentials(array $credentials)
+    protected function validateCredentials(array $credentials): void
     {
         foreach (['id', 'authorizedFor', 'data'] as $key) {
             if (empty($credentials[$key])) {
-                throw new \InvalidArgumentException("Missing key '{$key}'.");
+                throw new InvalidArgumentException("Missing key '{$key}'.");
             }
         }
     }

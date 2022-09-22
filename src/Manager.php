@@ -1,87 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\OAuthV2Api;
 
-/**
- *
- */
+use InvalidArgumentException;
+
 class Manager extends Common
 {
-    protected $requiredApiDetails = [
-        "component_id",
-        "friendly_name",
-        "app_key",
-        "app_secret",
-        "auth_url",
-        "token_url",
-        "oauth_version"
+    private const REQUIRED_API_DETAILS = [
+        'component_id',
+        'friendly_name',
+        'app_key',
+        'app_secret',
+        'auth_url',
+        'token_url',
+        'oauth_version',
     ];
 
-    public function __construct($manageToken, $config = [])
+    public function __construct(string $manageToken, array $config)
     {
-        $this->client = $this->getClient(['X-KBC-ManageApiToken' => $manageToken], $config);
+        parent::__construct(['X-KBC-ManageApiToken' => $manageToken], $config);
     }
 
-    /**
-     * @param array $details ## more than that!
-     * @return array|object
-     */
-    public function add(array $details)
+    public function add(array $details): array
     {
         $this->validateApiDetails($details);
-
-        return $this->apiPost("manage", [
-            'form_params' => $details
-        ]);
+        return $this->apiPost('manage', $details);
     }
 
-    /**
-     * @param string $componentId
-     */
-    public function delete($componentId)
+    public function delete(string $componentId): void
     {
-        return $this->apiDelete("manage/{$componentId}");
+        $this->apiDelete(sprintf('manage/%s', $componentId));
     }
 
-    /**
-     * @param string $componentId
-     * @return object
-     */
-    public function getDetail($componentId)
+    public function getDetail(string $componentId): array
     {
-        return $this->apiGet("manage/{$componentId}");
+        return $this->apiGet(sprintf('manage/%s', $componentId));
     }
 
-    /**
-     * @param $componentId
-     * @param array $details
-     * @return array|object
-     */
-    public function update($componentId, array $details)
+    public function update(string $componentId, array $details): array
     {
-        return $this->apiPatch("manage/{$componentId}", [
-            'form_params' => $details
-        ]);
+        return $this->apiPatch(sprintf('manage/%s', $componentId), $details);
     }
 
-    /**
-     * @return array
-     */
-    public function listComponents()
+    public function listComponents(): array
     {
-        return $this->apiGet("manage");
+        return $this->apiGet('manage');
     }
 
-    protected function validateApiDetails(array $details)
+    protected function validateApiDetails(array $details): void
     {
-        foreach ($this->requiredApiDetails as $key) {
+        foreach (self::REQUIRED_API_DETAILS as $key) {
             if (empty($details[$key])) {
-                throw new \InvalidArgumentException("Missing key '{$key}'.");
+                throw new InvalidArgumentException("Missing key '{$key}'.");
             }
         }
 
-        if ($details['oauth_version'] == 1.0 && empty($details['request_token_url'])) {
-            throw new \InvalidArgumentException("Missing 'request_token_url' for OAuth 1.0");
+        if ($details['oauth_version'] === 1.0 && empty($details['request_token_url'])) {
+            throw new InvalidArgumentException("Missing 'request_token_url' for OAuth 1.0");
         }
     }
 }

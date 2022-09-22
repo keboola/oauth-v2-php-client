@@ -1,143 +1,127 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Keboola\OAuthV2Api;
 
+use Closure;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use JsonException;
+use Keboola\OAuthV2Api\Exception\ClientException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
-/**
- *
- */
 class Common
 {
-    /**
-     * @var string
-     */
-    protected $apiUrl = 'https://syrup.keboola.com/oauth-v2/';
+    protected Client $client;
+    private const DEFAULT_BACKOFF_RETRIES = 10;
+    private const DEFAULT_HEADERS = ['Accept' => 'application/json'];
 
     /**
-     * @var ClientWrapper
+     * @param array{url: string, handler?: HandlerStack, backoffMaxTries?: int} $config
+     * @throws ClientException
      */
-    protected $client;
-
-    /**
-     * @var int
-     */
-    protected static $backOffMaxRetries = 10;
-
-    /**
-     * @var array
-     */
-    protected $defaultHeaders = [
-        'Accept' => 'application/json'
-    ];
-
-    /**
-     * @var bool
-     */
-    protected $returnArrays = false;
-
-    /**
-     * @param array $headers
-     * @param array $config
-     * @return ClientWrapper
-     * @throws \Exception
-     */
-    protected function getClient(array $headers, array $config = [])
+    public function __construct(array $headers, array $config)
     {
-        if (isset($config['url'])) {
-            $this->apiUrl = $config['url'];
-        }
-
         // Initialize handlers (start with those supplied in constructor)
-        if (isset($config['handler']) && is_a($config['handler'], HandlerStack::class)) {
-            $handlerStack = HandlerStack::create($config['handler']);
-        } else {
-            $handlerStack = HandlerStack::create();
+        $handlerStack = $config['handler'] ?? HandlerStack::create();
+        $handlerStack->push(
+            Middleware::retry(
+                self::createDefaultDecider($config['backoffMaxTries'] ?? self::DEFAULT_BACKOFF_RETRIES)
+            )
+        );
+
+        $this->client = new Client(
+            [
+                'base_uri' => $config['url'],
+                'headers' => array_merge(
+                    $headers,
+                    self::DEFAULT_HEADERS
+                ),
+                'handler' => $handlerStack,
+            ]
+        );
+    }
+
+    protected function apiGet(string $url): array
+    {
+        $request = new Request('GET', $url);
+        return $this->sendRequest($request);
+    }
+
+    protected function apiDelete(string $url): void
+    {
+        $request = new Request('DELETE', $url);
+        $this->sendRequest($request);
+    }
+
+    protected function apiPost(string $url, array $body): array
+    {
+        $request = new Request('POST', $url, [], json_encode($body, JSON_THROW_ON_ERROR));
+        return $this->sendRequest($request);
+    }
+
+    protected function apiPatch(string $url, array $body): array
+    {
+        $request = new Request('PATCH', $url, [], json_encode($body, JSON_THROW_ON_ERROR));
+        return $this->sendRequest($request);
+    }
+
+    protected function sendRequest(Request $request): array
+    {
+        try {
+            $response = $this->client->send($request);
+            $body = $response->getBody()->getContents();
+            if ($body === '') {
+                return [];
+            }
+            return (array) json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (RequestException $e) {
+            $message = $e->getMessage();
+            if ($e->getResponse()) {
+                try {
+                    $response = (array) json_decode(
+                        $e->getResponse()->getBody()->getContents(),
+                        true,
+                        512,
+                        JSON_THROW_ON_ERROR
+                    );
+                    if (!empty($response['message'])) {
+                        $message = $response['message'];
+                    }
+                } catch (Throwable $e2) {
+                }
+            }
+            throw new ClientException('OAuth API error: ' . $message, $e->getCode(), $e);
+        } catch (GuzzleException $e) {
+            throw new ClientException('OAuth API error: ' . $e->getMessage(), $e->getCode(), $e);
+        } catch (JsonException $e) {
+            throw new ClientException('Unable to parse response body into JSON: ' . $e->getMessage());
         }
-        $handlerStack->push(Middleware::retry(
-            self::createDefaultDecider(self::$backOffMaxRetries),
-            self::createExponentialDelay()
-        ));
-
-        $client = new Client([
-            'base_uri' => $this->apiUrl,
-            'headers' => array_merge(
-                $headers,
-                $this->defaultHeaders
-            ),
-            'handler' => $handlerStack,
-            'verify' => isset($config['verify']) ? $config['verify'] : true
-        ]);
-
-        return new ClientWrapper($client);
     }
-
-    protected function apiGet($url)
-    {
-        $response = $this->client->get($url)->getBody();
-        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
-    }
-
-    /**
-     * @todo check code = 204?
-     */
-    protected function apiDelete($url)
-    {
-        return $this->client->delete($url)->getBody();
-    }
-
-    protected function apiPost($url, $options)
-    {
-        $response = $this->client->post($url, $options)->getBody();
-        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
-    }
-
-    protected function apiPatch($url, $options)
-    {
-        $response = $this->client->patch($url, $options)->getBody();
-        return \Keboola\Utils\jsonDecode($response, $this->returnArrays);
-    }
-
-    /**
-     * @todo Lib to wrap this
-     * @param $maxRetries
-     * @return \Closure
-     */
-    private static function createDefaultDecider($maxRetries)
+    private static function createDefaultDecider(int $maxRetries): Closure
     {
         return function (
-            $retries,
+            int $retries,
             RequestInterface $request,
-            ResponseInterface $response = null,
-            $error = null
+            ?ResponseInterface $response = null,
+            ?Throwable $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
                 return false;
-            } elseif ($response && $response->getStatusCode() > 499) {
+            } elseif ($response && $response->getStatusCode() >= 500) {
                 return true;
-            } elseif ($error && $error->getCode() > 499) {
+            } elseif ($error && $error->getCode() >= 500) {
                 return true;
             } else {
                 return false;
             }
         };
-    }
-
-    private static function createExponentialDelay()
-    {
-        return function ($retries) {
-            return (int)pow(2, $retries - 1) * 1000;
-        };
-    }
-
-    /**
-     * @param bool $enable
-     */
-    public function enableReturnArrays($enable)
-    {
-        $this->returnArrays = (bool) $enable;
     }
 }
