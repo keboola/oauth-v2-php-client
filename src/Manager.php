@@ -57,7 +57,7 @@ class Manager extends Common
             }
         }
 
-        if ($details['oauth_version'] === 1.0 && empty($details['request_token_url'])) {
+        if ($details['oauth_version'] === '1.0' && empty($details['request_token_url'])) {
             throw new InvalidArgumentException("Missing 'request_token_url' for OAuth 1.0");
         }
     }
