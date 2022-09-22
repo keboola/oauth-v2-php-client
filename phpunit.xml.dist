@@ -9,7 +9,7 @@
         convertWarningsToExceptions="true"
         processIsolation="false"
         stopOnFailure="false"
-        bootstrap="tests\bootstrap.php"
+        bootstrap="vendor\autoload.php"
         printerClass="Sempro\PHPUnitPrettyPrinter\PrettyPrinterForPhpUnit9"
         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
 >
