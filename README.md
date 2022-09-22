@@ -1,6 +1,6 @@
 # OAuth PHP Client
 
-[![Build Status](https://travis-ci.org/keboola/oauth-v2-php-client.svg?branch=master)](https://travis-ci.org/keboola/oauth-v2-php-client)
+[![GitHub Actions](https://github.com/keboola/oauth-v2-php-client/actions/workflows/push.yml/badge.svg)](https://github.com/keboola/oauth-v2-php-client/actions/workflows/push.yml)
 
 ## Usage examples
 
@@ -14,12 +14,11 @@ use Keboola\OAuthV2Api\Credentials;
 $credentials = new Credentials(
   'YOUR_TOKEN',
   [
-    'url' => 'https://syrup.keboola.com/oauth-v2/',
+    'url' => 'https://oauth.keboola.com/',
   ]
 );
 $result = $credentials->listCredentials('keboola.ex-google-drive');
 ```
-
 
 ## License
 
