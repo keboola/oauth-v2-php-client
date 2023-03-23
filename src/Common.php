@@ -6,6 +6,7 @@ namespace Keboola\OAuthV2Api;
 
 use Closure;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
@@ -118,6 +119,10 @@ class Common
             } elseif ($response && $response->getStatusCode() >= 500) {
                 return true;
             } elseif ($error && $error->getCode() >= 500) {
+                return true;
+            } elseif ($error && (is_a($error, RequestException::class) || is_a($error, ConnectException::class))
+                && in_array($error->getHandlerContext()['errno'] ?? 0, [CURLE_RECV_ERROR, CURLE_SEND_ERROR])
+            ) {
                 return true;
             } else {
                 return false;
