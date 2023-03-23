@@ -159,7 +159,7 @@ class CredentialsTest extends TestCase
     {
         $mock = new MockHandler(
             [
-                new Response(500, ['Content-Type' => 'application/json'], 'not used')
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
             ],
             function (ResponseInterface $a) {
                 // abusing the mockhandler here: override the mock response and throw a Request exception
