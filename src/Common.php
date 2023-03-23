@@ -120,8 +120,9 @@ class Common
                 return true;
             } elseif ($error && $error->getCode() >= 500) {
                 return true;
-            } elseif ($error && (is_a($error, RequestException::class) || is_a($error, ConnectException::class))
-                && in_array($error->getHandlerContext()['errno'] ?? 0, [CURLE_RECV_ERROR, CURLE_SEND_ERROR])
+            } elseif ($error &&
+                 (is_a($error, RequestException::class) || is_a($error, ConnectException::class)) &&
+                  in_array($error->getHandlerContext()['errno'] ?? 0, [CURLE_RECV_ERROR, CURLE_SEND_ERROR])
             ) {
                 return true;
             } else {
