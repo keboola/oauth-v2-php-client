@@ -159,38 +159,17 @@ class CredentialsTest extends TestCase
     {
         $mock = new MockHandler(
             [
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(
-                    200,
-                    ['Content-Type' => 'application/json'],
-                    '[
-                        {
-                            "id": "ex-dropbox",
-                            "friendly_name": "Dropbox Extractor",
-                            "app_key": "1234",
-                            "oauth_version": "2.0"
-                        },
-                        {
-                            "id": "wr-dropbox",
-                            "friendly_name": "Dropbox Writer",
-                            "app_key": "5678",
-                            "oauth_version": "2.0"
-                        }
-                    ]'
-                ),
+                new Response(500, ['Content-Type' => 'application/json'], 'not used')
             ],
             function (ResponseInterface $a) {
-                if ($a->getStatusCode() === 500) {
-                    // abusing the mockhandler here: override the mock response and throw a Request exception
-                    throw new RequestException(
-                        'OAuth API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
-                        new Request('GET', 'https://example.com'),
-                        null,
-                        null,
-                        []
-                    );
-                }
+                // abusing the mockhandler here: override the mock response and throw a Request exception
+                throw new RequestException(
+                    'OAuth API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
+                    new Request('GET', 'https://example.com'),
+                    null,
+                    null,
+                    []
+                );
             }
         );
 
