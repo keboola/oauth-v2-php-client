@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Keboola\OAuthV2Api\Tests;
 
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Keboola\OAuthV2Api\Credentials;
+use Keboola\OAuthV2Api\Exception\ClientException;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 
 class CredentialsTest extends TestCase
 {
@@ -56,6 +59,154 @@ class CredentialsTest extends TestCase
         );
         self::assertSame('GET', $request->getMethod());
         self::assertSame('some-token', $request->getHeader('x-storageapi-token')[0]);
+    }
+
+    public function testRetryCurlExceptionFail(): void
+    {
+        $mock = new MockHandler(
+            [
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+            ],
+            function (ResponseInterface $a) {
+                // abusing the mockhandler here: override the mock response and throw a Request exception
+                throw new RequestException(
+                    'OAuth API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
+                    new Request('GET', 'https://example.com'),
+                    null,
+                    null,
+                    [
+                        'errno' => 56,
+                        'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
+                    ]
+                );
+            }
+        );
+
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $credentials = new Credentials(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com', 'backoffMaxTries' => 2]
+        );
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('OAuth API error: OAuth API error: cURL error 56:');
+        $credentials->getDetail('some-component', 'some-id');
+    }
+
+    public function testRetryCurlException(): void
+    {
+        $mock = new MockHandler(
+            [
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json'],
+                    '[
+                        {
+                            "id": "ex-dropbox",
+                            "friendly_name": "Dropbox Extractor",
+                            "app_key": "1234",
+                            "oauth_version": "2.0"
+                        },
+                        {
+                            "id": "wr-dropbox",
+                            "friendly_name": "Dropbox Writer",
+                            "app_key": "5678",
+                            "oauth_version": "2.0"
+                        }
+                    ]'
+                ),
+            ],
+            function (ResponseInterface $a) {
+                if ($a->getStatusCode() === 500) {
+                    // abusing the mockhandler here: override the mock response and throw a Request exception
+                    throw new RequestException(
+                        'OAuth API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
+                        new Request('GET', 'https://example.com'),
+                        null,
+                        null,
+                        [
+                            'errno' => 56,
+                            'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
+                        ]
+                    );
+                }
+            }
+        );
+
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $credentials = new Credentials(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com']
+        );
+        $result = $credentials->getDetail('some-component', 'some-id');
+        self::assertCount(2, $result);
+    }
+
+    public function testRetryCurlExceptionWithoutContext(): void
+    {
+        $mock = new MockHandler(
+            [
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json'],
+                    '[
+                        {
+                            "id": "ex-dropbox",
+                            "friendly_name": "Dropbox Extractor",
+                            "app_key": "1234",
+                            "oauth_version": "2.0"
+                        },
+                        {
+                            "id": "wr-dropbox",
+                            "friendly_name": "Dropbox Writer",
+                            "app_key": "5678",
+                            "oauth_version": "2.0"
+                        }
+                    ]'
+                ),
+            ],
+            function (ResponseInterface $a) {
+                if ($a->getStatusCode() === 500) {
+                    // abusing the mockhandler here: override the mock response and throw a Request exception
+                    throw new RequestException(
+                        'OAuth API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
+                        new Request('GET', 'https://example.com'),
+                        null,
+                        null,
+                        []
+                    );
+                }
+            }
+        );
+
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $credentials = new Credentials(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com']
+        );
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('OAuth API error: OAuth API error: cURL error 56:');
+        $credentials->getDetail('some-component', 'some-id');
     }
 
     public function testDetailArray(): void

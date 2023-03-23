@@ -11,9 +11,10 @@
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^7.5"
+       "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
+        "ext-curl": "*",
         "keboola/coding-standard": ">=14.0",
         "phpstan/phpstan": "^1.8",
         "phpstan/phpstan-phpunit": "^1.1",
