@@ -64,8 +64,8 @@ class Common
 
     protected function apiPost(string $url, array $body): array
     {
-        $request = new Request('POST', $url, [], json_encode($body, JSON_THROW_ON_ERROR));
-        $request->withHeader('Content-Type', 'application/json');
+        $headers = [ 'Content-Type' => 'application/json' ];
+        $request = new Request('POST', $url, $headers, json_encode($body, JSON_THROW_ON_ERROR));
         return $this->sendRequest($request);
     }
 
