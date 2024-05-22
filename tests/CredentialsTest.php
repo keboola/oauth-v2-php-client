@@ -272,12 +272,9 @@ class CredentialsTest extends TestCase
         $result = $cred->add(
             'wr-dropbox',
             [
-            'id' => 'main',
-            'authorizedFor' => 'Myself',
-            'data' => [
-                'access_token' => 'something',
-                'refresh_token' => 'something_else',
-            ],
+                'id' => 'main',
+                'authorizedFor' => 'Myself',
+                '#data' => 'KBC::BranchTypeSecure::encrypted-data-object',
             ],
         );
         self::assertIsArray($result);
