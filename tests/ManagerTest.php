@@ -35,9 +35,9 @@ class ManagerTest extends TestCase
                         "app_key": "5678",
                         "oauth_version": "2.0"
                     }
-                ]'
+                ]',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -48,7 +48,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
         );
         $result = $manager->listComponents();
         self::assertCount(2, $result);
@@ -72,9 +72,9 @@ class ManagerTest extends TestCase
                     "friendly_name": "Dropbox Extractor",
                     "app_key": "1234",
                     "oauth_version": "2.0"
-                }'
+                }',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -85,7 +85,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
         );
         $manager->update('ex-dropbox', ['friendly_name' => 'Dropbox Extractor 2']);
 
@@ -93,7 +93,7 @@ class ManagerTest extends TestCase
         $request = $container[0]['request'];
         $this->assertSame(
             'https://sunar.keboola.com/oauth-v2/manage/ex-dropbox',
-            $request->getUri()->__toString()
+            $request->getUri()->__toString(),
         );
         $this->assertSame('PATCH', $request->getMethod());
         $this->assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
@@ -111,9 +111,9 @@ class ManagerTest extends TestCase
                     "friendly_name": "Dropbox Extractor",
                     "app_key": "1234",
                     "oauth_version": "2.0"
-                }'
+                }',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -124,7 +124,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
         );
         $details = [
             'component_id' => 'ex-dropbox',
@@ -158,9 +158,9 @@ class ManagerTest extends TestCase
                     "message": "Error validating Manage token: Invalid access token",
                     "exceptionId": "oauth-v2-1234",
                     "runId": 0
-                 }'
+                 }',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -171,7 +171,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/'],
         );
         try {
             $manager->listComponents();
@@ -211,9 +211,9 @@ class ManagerTest extends TestCase
                             "app_key": "5678",
                             "oauth_version": "2.0"
                         }
-                    ]'
+                    ]',
                 ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -224,7 +224,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/'],
         );
         $result = $manager->listComponents();
         self::assertCount(2, $result);
@@ -237,7 +237,7 @@ class ManagerTest extends TestCase
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], 'Really bad server error'),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -248,7 +248,7 @@ class ManagerTest extends TestCase
 
         $manager = new Manager(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/', 'backoffMaxTries' => 2]
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/', 'backoffMaxTries' => 2],
         );
         try {
             $manager->listComponents();

@@ -34,9 +34,9 @@ class CredentialsTest extends TestCase
                         },
                         "created": "2016-01-31 00:13:30"
                     }
-                ]'
+                ]',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -55,7 +55,7 @@ class CredentialsTest extends TestCase
         $request = $container[0]['request'];
         self::assertSame(
             'https://jezevec.keboola.com/oauth-v2/credentials/wr-dropbox',
-            $request->getUri()->__toString()
+            $request->getUri()->__toString(),
         );
         self::assertSame('GET', $request->getMethod());
         self::assertSame('some-token', $request->getHeader('x-storageapi-token')[0]);
@@ -79,9 +79,9 @@ class CredentialsTest extends TestCase
                     [
                         'errno' => 56,
                         'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                    ]
+                    ],
                 );
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -92,7 +92,7 @@ class CredentialsTest extends TestCase
 
         $credentials = new Credentials(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://oauth.keboola.com', 'backoffMaxTries' => 2]
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com', 'backoffMaxTries' => 2],
         );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('OAuth API error: OAuth API error: cURL error 56:');
@@ -121,7 +121,7 @@ class CredentialsTest extends TestCase
                             "app_key": "5678",
                             "oauth_version": "2.0"
                         }
-                    ]'
+                    ]',
                 ),
             ],
             function (ResponseInterface $a) {
@@ -135,10 +135,10 @@ class CredentialsTest extends TestCase
                         [
                             'errno' => 56,
                             'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                        ]
+                        ],
                     );
                 }
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -149,7 +149,7 @@ class CredentialsTest extends TestCase
 
         $credentials = new Credentials(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://oauth.keboola.com']
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com'],
         );
         $result = $credentials->getDetail('some-component', 'some-id');
         self::assertCount(2, $result);
@@ -168,9 +168,9 @@ class CredentialsTest extends TestCase
                     new Request('GET', 'https://example.com'),
                     null,
                     null,
-                    []
+                    [],
                 );
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -181,7 +181,7 @@ class CredentialsTest extends TestCase
 
         $credentials = new Credentials(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://oauth.keboola.com']
+            ['handler' => $stack, 'url' => 'https://oauth.keboola.com'],
         );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('OAuth API error: OAuth API error: cURL error 56:');
@@ -207,9 +207,9 @@ class CredentialsTest extends TestCase
                     "oauthVersion": "2.0",
                     "appKey": "1234",
                     "#appSecret": "KBC::ComponentEncrypted==/5fEM59+3+59+5+"
-                }'
+                }',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -220,7 +220,7 @@ class CredentialsTest extends TestCase
 
         $cred = new Credentials(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/']
+            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/'],
         );
         $result = $cred->getDetail('wr-dropbox', 'credentials-id');
         self::assertIsArray($result);
@@ -232,7 +232,7 @@ class CredentialsTest extends TestCase
         $request = $container[0]['request'];
         self::assertSame(
             'https://syrup.keboola.com/oauth-v2/credentials/wr-dropbox/credentials-id',
-            $request->getUri()->__toString()
+            $request->getUri()->__toString(),
         );
         self::assertSame('GET', $request->getMethod());
         self::assertSame('some-token', $request->getHeader('x-storageapi-token')[0]);
@@ -257,9 +257,9 @@ class CredentialsTest extends TestCase
                     "oauthVersion": "2.0",
                     "appKey": "1234",
                     "#appSecret": "KBC::ComponentEncrypted==/5fEM59+3+59+5+"
-                }'
+                }',
             ),
-            ]
+            ],
         );
 
         // Add the history middleware to the handler stack.
@@ -278,7 +278,7 @@ class CredentialsTest extends TestCase
                 'access_token' => 'something',
                 'refresh_token' => 'something_else',
             ],
-            ]
+            ],
         );
         self::assertIsArray($result);
         self::assertCount(8, $result);
@@ -289,7 +289,7 @@ class CredentialsTest extends TestCase
         $request = $container[0]['request'];
         self::assertSame(
             'https://boo/credentials/wr-dropbox',
-            $request->getUri()->__toString()
+            $request->getUri()->__toString(),
         );
         self::assertSame('POST', $request->getMethod());
         self::assertSame('some-token', $request->getHeader('x-storageapi-token')[0]);
