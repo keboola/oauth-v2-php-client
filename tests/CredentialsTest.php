@@ -289,6 +289,7 @@ class CredentialsTest extends TestCase
             $request->getUri()->__toString(),
         );
         self::assertSame('POST', $request->getMethod());
+        self::assertSame('application/json', $request->getHeader('Content-Type')[0]);
         self::assertSame('some-token', $request->getHeader('x-storageapi-token')[0]);
     }
 }
