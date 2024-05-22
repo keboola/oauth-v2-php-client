@@ -30,9 +30,9 @@ class Credentials extends Common
 
     /**
      * @param array{
-     *  'id': string,
-     *  'authorizedFor': string,
-     *  'data': array
+     *  "id": string,
+     *  "authorizedFor": string,
+     *  "#data": string
      * } $credentials
      */
     public function add(string $componentId, array $credentials): array
@@ -43,7 +43,7 @@ class Credentials extends Common
 
     protected function validateCredentials(array $credentials): void
     {
-        foreach (['id', 'authorizedFor', 'data'] as $key) {
+        foreach (['id', 'authorizedFor', '#data'] as $key) {
             if (empty($credentials[$key])) {
                 throw new InvalidArgumentException("Missing key '{$key}'.");
             }
