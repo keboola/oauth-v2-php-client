@@ -46,6 +46,15 @@ class Common
                     self::DEFAULT_HEADERS,
                 ),
                 'handler' => $handlerStack,
+                'connect_timeout' => 120,
+                'timeout' => 120,
+                'curl' => [
+                    CURLOPT_LOW_SPEED_LIMIT => 1,
+                    CURLOPT_LOW_SPEED_TIME => 120,
+                    CURLOPT_TCP_KEEPALIVE => 1,
+                    CURLOPT_TCP_KEEPIDLE => 60,
+                    CURLOPT_TCP_KEEPINTVL => 30,
+                ],
             ],
         );
     }
