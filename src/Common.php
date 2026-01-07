@@ -48,10 +48,6 @@ class Common
                 'handler' => $handlerStack,
                 'connect_timeout' => 120,
                 'timeout' => 120,
-                'curl' => [
-                    CURLOPT_TCP_KEEPIDLE => 60,
-                    CURLOPT_TCP_KEEPINTVL => 30,
-                ],
             ],
         );
     }
