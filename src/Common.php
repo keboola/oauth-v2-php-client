@@ -38,16 +38,18 @@ class Common
             )
         );
 
-        $this->client = new Client(
-            [
-                'base_uri' => $config['url'],
-                'headers' => array_merge(
-                    $headers,
-                    self::DEFAULT_HEADERS
-                ),
-                'handler' => $handlerStack,
-            ]
-        );
+                $this->client = new Client(
+                    [
+                        'base_uri' => $config['url'],
+                        'headers' => array_merge(
+                            $headers,
+                            self::DEFAULT_HEADERS
+                        ),
+                        'handler' => $handlerStack,
+                        'connect_timeout' => 120,
+                        'timeout' => 120,
+                    ]
+                );
     }
 
     protected function apiGet(string $url): array
