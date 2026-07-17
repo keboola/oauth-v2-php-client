@@ -114,6 +114,26 @@ class ManagerTest extends TestCase
         );
     }
 
+    public function testDelete(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(204, [], ''),
+        ]);
+
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $client->delete('ex-dropbox');
+
+        self::assertCount(1, $requestsHistory);
+        self::assertRequestEquals(
+            'DELETE',
+            self::BASE_URL . '/manage/ex-dropbox',
+            ['X-KBC-ManageApiToken' => self::API_TOKEN],
+            null,
+            $requestsHistory[0]['request'],
+        );
+    }
+
     public function testCreateValidatesRequiredKeys(): void
     {
         $client = new Manager(self::BASE_URL, self::API_TOKEN);
@@ -216,5 +236,21 @@ class ManagerTest extends TestCase
         $this->expectExceptionMessage('Really bad server error');
 
         $client->listComponents();
+    }
+
+    public function testEmptyBaseUrlThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Base URL must be a non-empty string');
+
+        new Manager('', self::API_TOKEN); // @phpstan-ignore-line
+    }
+
+    public function testEmptyTokenThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Manage API token must not be empty');
+
+        new Manager(self::BASE_URL, ''); // @phpstan-ignore-line
     }
 }
