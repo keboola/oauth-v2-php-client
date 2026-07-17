@@ -121,6 +121,26 @@ class CredentialsTest extends TestCase
         );
     }
 
+    public function testDelete(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(204, [], ''),
+        ]);
+
+        $client = new Credentials(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $client->delete('wr-dropbox', 'credentials-id');
+
+        self::assertCount(1, $requestsHistory);
+        self::assertRequestEquals(
+            'DELETE',
+            self::BASE_URL . '/credentials/wr-dropbox/credentials-id',
+            ['X-StorageApi-Token' => self::API_TOKEN],
+            null,
+            $requestsHistory[0]['request'],
+        );
+    }
+
     public function testAddValidatesRequiredKeys(): void
     {
         $client = new Credentials(self::BASE_URL, self::API_TOKEN);
