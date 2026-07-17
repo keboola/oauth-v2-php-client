@@ -4,128 +4,93 @@ declare(strict_types=1);
 
 namespace Keboola\OAuthV2Api\Tests;
 
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use InvalidArgumentException;
+use Keboola\ApiClientBase\Json;
 use Keboola\OAuthV2Api\Exception\ClientException;
 use Keboola\OAuthV2Api\Manager;
 use PHPUnit\Framework\TestCase;
 
 class ManagerTest extends TestCase
 {
+    use ApiClientTestTrait;
+
+    private const BASE_URL = 'https://oauth.keboola.com';
+    private const API_TOKEN = 'some-token';
+
     public function testListComponents(): void
     {
-        $mock = new MockHandler(
-            [
-            new Response(
-                200,
-                ['Content-Type' => 'application/json'],
-                '[
-                    {
-                        "id": "ex-dropbox",
-                        "friendly_name": "Dropbox Extractor",
-                        "app_key": "1234",
-                        "oauth_version": "2.0"
-                    },
-                    {
-                        "id": "wr-dropbox",
-                        "friendly_name": "Dropbox Writer",
-                        "app_key": "5678",
-                        "oauth_version": "2.0"
-                    }
-                ]',
-            ),
-            ],
-        );
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
+                [
+                    'id' => 'ex-dropbox',
+                    'friendly_name' => 'Dropbox Extractor',
+                    'app_key' => '1234',
+                    'oauth_version' => '2.0',
+                ],
+                [
+                    'id' => 'wr-dropbox',
+                    'friendly_name' => 'Dropbox Writer',
+                    'app_key' => '5678',
+                    'oauth_version' => '2.0',
+                ],
+            ])),
+        ]);
 
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
 
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
-        );
-        $result = $manager->listComponents();
+        $result = $client->listComponents();
+
         self::assertCount(2, $result);
-
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        self::assertSame('https://sunar.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
-        self::assertSame('GET', $request->getMethod());
-        self::assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
+        self::assertRequestEquals(
+            'GET',
+            self::BASE_URL . '/manage',
+            ['X-KBC-ManageApiToken' => self::API_TOKEN],
+            null,
+            $requestsHistory[0]['request'],
+        );
     }
 
-    public function testUpdateComponent(): void
+    public function testUpdate(): void
     {
-        $mock = new MockHandler(
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
+                'id' => 'ex-dropbox',
+                'friendly_name' => 'Dropbox Extractor',
+                'app_key' => '1234',
+                'oauth_version' => '2.0',
+            ])),
+        ]);
+
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $client->update('ex-dropbox', ['friendly_name' => 'Dropbox Extractor 2']);
+
+        self::assertRequestEquals(
+            'PATCH',
+            self::BASE_URL . '/manage/ex-dropbox',
             [
-            new Response(
-                200,
-                ['Content-Type' => 'application/json'],
-                '{
-                    "id": "ex-dropbox",
-                    "friendly_name": "Dropbox Extractor",
-                    "app_key": "1234",
-                    "oauth_version": "2.0"
-                }',
-            ),
+                'Content-Type' => 'application/json',
+                'X-KBC-ManageApiToken' => self::API_TOKEN,
             ],
+            Json::encodeArray(['friendly_name' => 'Dropbox Extractor 2']),
+            $requestsHistory[0]['request'],
         );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
-
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
-        );
-        $manager->update('ex-dropbox', ['friendly_name' => 'Dropbox Extractor 2']);
-
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertSame(
-            'https://sunar.keboola.com/oauth-v2/manage/ex-dropbox',
-            $request->getUri()->__toString(),
-        );
-        $this->assertSame('PATCH', $request->getMethod());
-        $this->assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testCreateComponent(): void
+    public function testCreate(): void
     {
-        $mock = new MockHandler(
-            [
-            new Response(
-                200,
-                ['Content-Type' => 'application/json'],
-                '{
-                    "id": "ex-dropbox",
-                    "friendly_name": "Dropbox Extractor",
-                    "app_key": "1234",
-                    "oauth_version": "2.0"
-                }',
-            ),
-            ],
-        );
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
+                'id' => 'ex-dropbox',
+                'friendly_name' => 'Dropbox Extractor',
+                'app_key' => '1234',
+                'oauth_version' => '2.0',
+            ])),
+        ]);
 
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
 
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://sunar.keboola.com/oauth-v2/'],
-        );
         $details = [
             'component_id' => 'ex-dropbox',
             'friendly_name' => 'Dropbox Extractor 2',
@@ -135,126 +100,121 @@ class ManagerTest extends TestCase
             'token_url' => 'test',
             'oauth_version' => '2.0',
         ];
-        $manager->add($details);
+        $client->add($details);
 
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertSame('https://sunar.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
-        $this->assertSame('POST', $request->getMethod());
-        $this->assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
-    }
-
-    public function testInvalidToken(): void
-    {
-        $mock = new MockHandler(
+        self::assertRequestEquals(
+            'POST',
+            self::BASE_URL . '/manage',
             [
-            new Response(
-                400,
-                ['Content-Type' => 'application/json'],
-                '{
-                    "status": "error",
-                    "error": "User error",
-                    "code": 400,
-                    "message": "Error validating Manage token: Invalid access token",
-                    "exceptionId": "oauth-v2-1234",
-                    "runId": 0
-                 }',
-            ),
+                'Content-Type' => 'application/json',
+                'X-KBC-ManageApiToken' => self::API_TOKEN,
             ],
+            Json::encodeArray($details),
+            $requestsHistory[0]['request'],
         );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
-
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/'],
-        );
-        try {
-            $manager->listComponents();
-            self::fail('Invalid token must cause exception.');
-        } catch (ClientException $e) {
-            self::assertStringContainsString('Invalid access token', $e->getMessage());
-        }
-
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        self::assertSame('https://syrup.keboola.com/oauth-v2/manage', $request->getUri()->__toString());
-        self::assertSame('GET', $request->getMethod());
-        self::assertSame('some-token', $request->getHeader('x-kbc-manageapitoken')[0]);
     }
 
-    public function testRetry(): void
+    public function testCreateValidatesRequiredKeys(): void
     {
-        $mock = new MockHandler(
-            [
-                new Response(500, ['Content-Type' => 'application/json'], ''),
-                new Response(500, ['Content-Type' => 'application/json'], ''),
-                new Response(500, ['Content-Type' => 'application/json'], ''),
-                new Response(500, ['Content-Type' => 'application/json'], ''),
-                new Response(
-                    200,
-                    ['Content-Type' => 'application/json'],
-                    '[
-                        {
-                            "id": "ex-dropbox",
-                            "friendly_name": "Dropbox Extractor",
-                            "app_key": "1234",
-                            "oauth_version": "2.0"
-                        },
-                        {
-                            "id": "wr-dropbox",
-                            "friendly_name": "Dropbox Writer",
-                            "app_key": "5678",
-                            "oauth_version": "2.0"
-                        }
-                    ]',
-                ),
-            ],
-        );
+        $client = new Manager(self::BASE_URL, self::API_TOKEN);
 
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Missing key 'app_key'.");
 
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/'],
-        );
-        $result = $manager->listComponents();
-        self::assertCount(2, $result);
+        $client->add([
+            'component_id' => 'ex-dropbox',
+            'friendly_name' => 'Dropbox Extractor',
+            'app_key' => '',
+            'app_secret' => 'test',
+            'auth_url' => 'test',
+            'token_url' => 'test',
+            'oauth_version' => '2.0',
+        ]);
     }
 
-    public function testRetryFail(): void
+    public function testCreateOauth1RequiresRequestTokenUrl(): void
     {
-        $mock = new MockHandler(
-            [
+        $client = new Manager(self::BASE_URL, self::API_TOKEN);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Missing 'request_token_url' for OAuth 1.0");
+
+        $client->add([
+            'component_id' => 'ex-twitter',
+            'friendly_name' => 'Twitter',
+            'app_key' => 'test',
+            'app_secret' => 'test',
+            'auth_url' => 'test',
+            'token_url' => 'test',
+            'oauth_version' => '1.0',
+        ]);
+    }
+
+    public function testInvalidTokenUsesOAuthErrorMessage(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(400, ['Content-Type' => 'application/json'], Json::encodeArray([
+                'status' => 'error',
+                'error' => 'User error',
+                'code' => 400,
+                'message' => 'Error validating Manage token: Invalid access token',
+                'exceptionId' => 'oauth-v2-1234',
+                'runId' => 0,
+            ])),
+        ]);
+
+        $client = new Manager(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 0,
+            requestHandler: $requestHandler(...),
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('OAuth API error: Error validating Manage token: Invalid access token');
+
+        $client->listComponents();
+    }
+
+    public function testRetriesOnServerErrorThenSucceeds(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(500, ['Content-Type' => 'application/json'], ''),
+            new Response(500, ['Content-Type' => 'application/json'], ''),
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
+                [
+                    'id' => 'ex-dropbox',
+                    'friendly_name' => 'Dropbox Extractor',
+                    'app_key' => '1234',
+                    'oauth_version' => '2.0',
+                ],
+            ])),
+        ]);
+
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $result = $client->listComponents();
+        self::assertCount(1, $result);
+    }
+
+    public function testRetriesExhaustedThrowsClientException(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], ''),
             new Response(500, ['Content-Type' => 'application/json'], 'Really bad server error'),
-            ],
+        ]);
+
+        $client = new Manager(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 2,
+            requestHandler: $requestHandler(...),
         );
 
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Really bad server error');
 
-        $manager = new Manager(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://syrup.keboola.com/oauth-v2/', 'backoffMaxTries' => 2],
-        );
-        try {
-            $manager->listComponents();
-            self::fail('Invalid token must cause exception.');
-        } catch (ClientException $e) {
-            self::assertStringContainsString('Really bad server error', $e->getMessage());
-        }
+        $client->listComponents();
     }
 }
