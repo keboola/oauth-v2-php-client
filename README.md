@@ -1,23 +1,58 @@
-# OAuth PHP Client
+# OAuth v2 PHP Client
 
 [![GitHub Actions](https://github.com/keboola/oauth-v2-php-client/actions/workflows/push.yml/badge.svg)](https://github.com/keboola/oauth-v2-php-client/actions/workflows/push.yml)
 
-## Usage examples
+Keboola OAuth v2 API client, built on
+[`keboola/php-api-client-base`](https://github.com/keboola/php-api-client-base).
 
-### List credentials
+## Installation
+
+```bash
+composer require keboola/oauth-v2-php-client
+```
+
+## Usage
+
+Both clients take the API base URL and the auth token first, followed by optional,
+named transport options (`logger`, `backoffMaxTries`, `connectTimeout`,
+`requestTimeout`, `userAgent`, `requestHandler`).
+
+### Credentials (Storage API token)
 
 ```php
-require 'vendor/autoload.php';
-
 use Keboola\OAuthV2Api\Credentials;
 
 $credentials = new Credentials(
-  'YOUR_TOKEN',
-  [
-    'url' => 'https://oauth.keboola.com/',
-  ]
+    'https://oauth.keboola.com',
+    getenv('STORAGE_API_TOKEN'),
 );
-$result = $credentials->listCredentials('keboola.ex-google-drive');
+
+$list = $credentials->listCredentials('keboola.ex-google-drive');
+```
+
+### Manager (Manage API token)
+
+```php
+use Keboola\OAuthV2Api\Manager;
+
+$manager = new Manager(
+    'https://oauth.keboola.com',
+    getenv('MANAGE_API_TOKEN'),
+);
+
+$components = $manager->listComponents();
+```
+
+On a failed request both clients throw
+`Keboola\OAuthV2Api\Exception\ClientException` (a subclass of
+`Keboola\ApiClientBase\Exception\ClientException`), which exposes
+`getStatusCode()` and `getResponseBody()` for the failing response when available.
+
+## Development
+
+```bash
+docker compose run dev composer install
+docker compose run dev composer ci
 ```
 
 ## License
