@@ -9,16 +9,21 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
+        "php": "^8.2",
         "ext-json": "*",
-       "guzzlehttp/guzzle": "^7.5"
+        "guzzlehttp/guzzle": "^7.8",
+        "keboola/php-api-client-base": "^1.0.1",
+        "psr/http-message": "^1.0|^2.0",
+        "psr/log": "^1.0|^2.0|^3.0",
+        "webmozart/assert": "^1.11"
     },
     "require-dev": {
         "ext-curl": "*",
-        "keboola/coding-standard": ">=14.0",
-        "phpstan/phpstan": "^1.8",
-        "phpstan/phpstan-phpunit": "^1.1",
-        "phpunit/phpunit": "^9.5",
+        "keboola/coding-standard": "^15.0",
+        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan-phpunit": "^1.3",
+        "phpstan/phpstan-webmozart-assert": "^1.2",
+        "phpunit/phpunit": "^9.6",
         "sempro/phpunit-pretty-print": "^1.4"
     },
     "autoload": {
@@ -31,20 +36,20 @@
             "Keboola\\OAuthV2Api\\Tests\\": "tests/"
         }
     },
-     "scripts": {
-         "tests": "phpunit --coverage-clover build/logs/clover.xml --coverage-xml=build/logs/coverage-xml --log-junit=build/logs/phpunit.junit.xml",
-         "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
-         "phpcs": "phpcs --extensions=php src tests",
-         "phpcbf": "phpcbf --extensions=php src tests",
-         "build": [
-             "@phpcs",
-             "@phpstan",
-             "@tests"
-         ],
-         "ci": [
-             "@composer validate --no-check-all --strict",
-             "@build"
-         ]
+    "scripts": {
+        "tests": "phpunit --coverage-clover build/logs/clover.xml --coverage-xml=build/logs/coverage-xml --log-junit=build/logs/phpunit.junit.xml",
+        "phpstan": "phpstan analyse --no-progress -c phpstan.neon",
+        "phpcs": "phpcs --extensions=php src tests",
+        "phpcbf": "phpcbf --extensions=php src tests",
+        "build": [
+            "@phpcs",
+            "@phpstan",
+            "@tests"
+        ],
+        "ci": [
+            "@composer validate --no-check-all --strict",
+            "@build"
+        ]
     },
     "config": {
         "sort-packages": true,

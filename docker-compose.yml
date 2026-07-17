@@ -1,11 +1,9 @@
-version: "2"
-services:
-  # for development purposes
-  ci: &ci
-    build: .
-    command: ['composer', 'ci']
+version: "3.4"
 
-  tests-local:
-    <<: *ci
+services:
+  dev:
+    build: .
     volumes:
       - ./:/code
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
