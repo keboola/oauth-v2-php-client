@@ -99,10 +99,7 @@ class CredentialsTest extends TestCase
         $credentials = [
             'id' => 'main',
             'authorizedFor' => 'Myself',
-            'data' => [
-                'access_token' => 'something',
-                'refresh_token' => 'something_else',
-            ],
+            '#data' => 'KBC::BranchTypeSecure::encrypted-data-object',
         ];
         $result = $client->add('wr-dropbox', $credentials);
 
@@ -146,9 +143,9 @@ class CredentialsTest extends TestCase
         $client = new Credentials(self::BASE_URL, self::API_TOKEN);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Missing key 'data'.");
+        $this->expectExceptionMessage("Missing key '#data'.");
 
-        $client->add('wr-dropbox', ['id' => 'main', 'authorizedFor' => 'Myself', 'data' => []]);
+        $client->add('wr-dropbox', ['id' => 'main', 'authorizedFor' => 'Myself', '#data' => '']);
     }
 
     public function testRetriesOnTransportErrorThenSucceeds(): void
