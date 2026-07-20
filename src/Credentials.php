@@ -92,7 +92,7 @@ class Credentials
     }
 
     /**
-     * @param array{id: string, authorizedFor: string, data: array<mixed>} $credentials
+     * @param array{id: string, authorizedFor: string, "#data": string} $credentials
      * @return array<mixed>
      */
     public function add(string $componentId, array $credentials): array
@@ -115,7 +115,7 @@ class Credentials
      */
     protected function validateCredentials(array $credentials): void
     {
-        foreach (['id', 'authorizedFor', 'data'] as $key) {
+        foreach (['id', 'authorizedFor', '#data'] as $key) {
             if (empty($credentials[$key])) {
                 throw new InvalidArgumentException("Missing key '{$key}'.");
             }
