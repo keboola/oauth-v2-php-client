@@ -10,6 +10,7 @@ use GuzzleHttp\Psr7\Request;
 use InvalidArgumentException;
 use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
+use Keboola\ApiClientBase\Auth\KeboolaServiceAccountAuthenticator;
 use Keboola\ApiClientBase\Auth\ManageApiTokenAuthenticator;
 use Keboola\ApiClientBase\Json;
 use Keboola\OAuthV2Api\Exception\ClientException;
@@ -41,12 +42,16 @@ class Manager
 
     /**
      * @param non-empty-string $baseUrl
-     * @param non-empty-string $manageToken
+     * @param non-empty-string|null $manageToken
      * @param int<0, max> $backoffMaxTries
+     *
+     * When $manageToken is provided, authenticates with X-KBC-ManageApiToken.
+     * When null (default), authenticates via the projected Kubernetes ServiceAccount
+     * token — see {@see KeboolaServiceAccountAuthenticator}.
      */
     public function __construct(
         string $baseUrl,
-        string $manageToken,
+        ?string $manageToken = null,
         ?LoggerInterface $logger = null,
         int $backoffMaxTries = self::DEFAULT_BACKOFF_MAX_TRIES,
         int $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT,
@@ -56,9 +61,13 @@ class Manager
     ) {
         Assert::stringNotEmpty($baseUrl, 'Base URL must be a non-empty string');
 
+        $authenticator = $manageToken !== null
+            ? new ManageApiTokenAuthenticator($manageToken)
+            : new KeboolaServiceAccountAuthenticator();
+
         $this->apiClient = new ApiClient(
             $baseUrl,
-            new ManageApiTokenAuthenticator($manageToken),
+            $authenticator,
             new ApiClientOptions(
                 userAgent: $userAgent,
                 backoffMaxTries: $backoffMaxTries,

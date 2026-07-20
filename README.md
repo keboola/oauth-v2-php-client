@@ -43,6 +43,13 @@ $manager = new Manager(
 $components = $manager->listComponents();
 ```
 
+The manage token is optional. When omitted (or `null`), the client authenticates
+with the projected Kubernetes ServiceAccount token instead of `X-KBC-ManageApiToken`:
+
+```php
+$manager = new Manager('https://oauth.keboola.com');
+```
+
 On a failed request both clients throw
 `Keboola\OAuthV2Api\Exception\ClientException` (a subclass of
 `Keboola\ApiClientBase\Exception\ClientException`), which exposes
