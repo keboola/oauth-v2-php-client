@@ -19,7 +19,13 @@ use Webmozart\Assert\Assert;
 class Manager
 {
     private const FALLBACK_USER_AGENT = 'Keboola OAuth Manager PHP Client';
-    private const JSON_HEADERS = ['Content-Type' => 'application/json'];
+    private const DEFAULT_HEADERS = ['Accept' => 'application/json'];
+    private const JSON_HEADERS = ['Content-Type' => 'application/json', 'Accept' => 'application/json'];
+
+    // Preserve the behaviour of the legacy Common-based client (do not fall back to base defaults).
+    private const DEFAULT_BACKOFF_MAX_TRIES = 10;
+    private const DEFAULT_CONNECT_TIMEOUT = 120;
+    private const DEFAULT_REQUEST_TIMEOUT = 120;
 
     private const REQUIRED_API_DETAILS = [
         'component_id',
@@ -42,9 +48,9 @@ class Manager
         string $baseUrl,
         string $manageToken,
         ?LoggerInterface $logger = null,
-        int $backoffMaxTries = ApiClientOptions::DEFAULT_BACKOFF_MAX_TRIES,
-        int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,
-        int $requestTimeout = ApiClientOptions::DEFAULT_REQUEST_TIMEOUT,
+        int $backoffMaxTries = self::DEFAULT_BACKOFF_MAX_TRIES,
+        int $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT,
+        int $requestTimeout = self::DEFAULT_REQUEST_TIMEOUT,
         string $userAgent = self::FALLBACK_USER_AGENT,
         null|Closure|HandlerStack $requestHandler = null,
     ) {
@@ -83,7 +89,7 @@ class Manager
     public function delete(string $componentId): void
     {
         $this->apiClient->sendRequest(
-            new Request('DELETE', sprintf('manage/%s', rawurlencode($componentId))),
+            new Request('DELETE', sprintf('manage/%s', rawurlencode($componentId)), self::DEFAULT_HEADERS),
         );
     }
 
@@ -93,7 +99,7 @@ class Manager
     public function getDetail(string $componentId): array
     {
         return $this->apiClient->sendRequestAndMapResponse(
-            new Request('GET', sprintf('manage/%s', rawurlencode($componentId))),
+            new Request('GET', sprintf('manage/%s', rawurlencode($componentId)), self::DEFAULT_HEADERS),
             ArrayResponse::class,
         )->data;
     }
@@ -121,7 +127,7 @@ class Manager
     public function listComponents(): array
     {
         return $this->apiClient->sendRequestAndMapResponse(
-            new Request('GET', 'manage'),
+            new Request('GET', 'manage', self::DEFAULT_HEADERS),
             ArrayResponse::class,
         )->data;
     }

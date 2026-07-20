@@ -45,7 +45,7 @@ class CredentialsTest extends TestCase
         self::assertRequestEquals(
             'GET',
             self::BASE_URL . '/credentials/wr-dropbox',
-            ['X-StorageApi-Token' => self::API_TOKEN],
+            ['Accept' => 'application/json', 'X-StorageApi-Token' => self::API_TOKEN],
             null,
             $requestsHistory[0]['request'],
         );
@@ -77,7 +77,7 @@ class CredentialsTest extends TestCase
         self::assertRequestEquals(
             'GET',
             self::BASE_URL . '/credentials/wr-dropbox/credentials-id',
-            ['X-StorageApi-Token' => self::API_TOKEN],
+            ['Accept' => 'application/json', 'X-StorageApi-Token' => self::API_TOKEN],
             null,
             $requestsHistory[0]['request'],
         );
@@ -111,6 +111,7 @@ class CredentialsTest extends TestCase
             self::BASE_URL . '/credentials/wr-dropbox',
             [
                 'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'X-StorageApi-Token' => self::API_TOKEN,
             ],
             Json::encodeArray($credentials),
@@ -132,7 +133,7 @@ class CredentialsTest extends TestCase
         self::assertRequestEquals(
             'DELETE',
             self::BASE_URL . '/credentials/wr-dropbox/credentials-id',
-            ['X-StorageApi-Token' => self::API_TOKEN],
+            ['Accept' => 'application/json', 'X-StorageApi-Token' => self::API_TOKEN],
             null,
             $requestsHistory[0]['request'],
         );

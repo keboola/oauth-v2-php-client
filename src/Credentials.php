@@ -19,7 +19,13 @@ use Webmozart\Assert\Assert;
 class Credentials
 {
     private const FALLBACK_USER_AGENT = 'Keboola OAuth PHP Client';
-    private const JSON_HEADERS = ['Content-Type' => 'application/json'];
+    private const DEFAULT_HEADERS = ['Accept' => 'application/json'];
+    private const JSON_HEADERS = ['Content-Type' => 'application/json', 'Accept' => 'application/json'];
+
+    // Preserve the behaviour of the legacy Common-based client (do not fall back to base defaults).
+    private const DEFAULT_BACKOFF_MAX_TRIES = 10;
+    private const DEFAULT_CONNECT_TIMEOUT = 120;
+    private const DEFAULT_REQUEST_TIMEOUT = 120;
 
     private ApiClient $apiClient;
 
@@ -32,9 +38,9 @@ class Credentials
         string $baseUrl,
         string $storageToken,
         ?LoggerInterface $logger = null,
-        int $backoffMaxTries = ApiClientOptions::DEFAULT_BACKOFF_MAX_TRIES,
-        int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,
-        int $requestTimeout = ApiClientOptions::DEFAULT_REQUEST_TIMEOUT,
+        int $backoffMaxTries = self::DEFAULT_BACKOFF_MAX_TRIES,
+        int $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT,
+        int $requestTimeout = self::DEFAULT_REQUEST_TIMEOUT,
         string $userAgent = self::FALLBACK_USER_AGENT,
         null|Closure|HandlerStack $requestHandler = null,
     ) {
@@ -65,6 +71,7 @@ class Credentials
             new Request(
                 'GET',
                 sprintf('credentials/%s/%s', rawurlencode($componentId), rawurlencode($credentialsId)),
+                self::DEFAULT_HEADERS,
             ),
             ArrayResponse::class,
         )->data;
@@ -76,7 +83,7 @@ class Credentials
     public function listCredentials(string $componentId): array
     {
         return $this->apiClient->sendRequestAndMapResponse(
-            new Request('GET', sprintf('credentials/%s', rawurlencode($componentId))),
+            new Request('GET', sprintf('credentials/%s', rawurlencode($componentId)), self::DEFAULT_HEADERS),
             ArrayResponse::class,
         )->data;
     }
@@ -87,6 +94,7 @@ class Credentials
             new Request(
                 'DELETE',
                 sprintf('credentials/%s/%s', rawurlencode($componentId), rawurlencode($credentialsId)),
+                self::DEFAULT_HEADERS,
             ),
         );
     }
