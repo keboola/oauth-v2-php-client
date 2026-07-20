@@ -30,20 +30,20 @@ $credentials = new Credentials(
 $list = $credentials->listCredentials('keboola.ex-google-drive');
 ```
 
-### Manager (Manage API token)
+### Manager (application token)
 
 ```php
 use Keboola\OAuthV2Api\Manager;
 
 $manager = new Manager(
     'https://oauth.keboola.com',
-    getenv('MANAGE_API_TOKEN'),
+    getenv('APPLICATION_TOKEN'),
 );
 
 $components = $manager->listComponents();
 ```
 
-The manage token is optional. When omitted (or `null`), the client authenticates
+The application token is optional. When omitted (or `null`), the client authenticates
 with the projected Kubernetes ServiceAccount token instead of `X-KBC-ManageApiToken`:
 
 ```php
