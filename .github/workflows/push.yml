@@ -9,9 +9,6 @@ env:
 jobs:
   Build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php-version: [ '8.2', '8.3' ]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -23,13 +20,7 @@ jobs:
           password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Build Docker container
-        run: |
-          docker compose build dev --build-arg PHP_VERSION=${{ matrix.php-version }}
+        run: docker compose build dev
 
       - name: Install dependencies & Run tests
-        run: |
-          if [ "${{ matrix.php-version }}" = "8.2" ]; then
-            docker compose run dev bash -c "composer update --prefer-lowest && composer ci"
-          else
-            docker compose run dev bash -c "composer update && composer ci"
-          fi
+        run: docker compose run dev bash -c "composer update && composer ci"
