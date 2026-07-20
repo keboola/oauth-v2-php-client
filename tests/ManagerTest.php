@@ -45,7 +45,7 @@ class ManagerTest extends TestCase
         self::assertRequestEquals(
             'GET',
             self::BASE_URL . '/manage',
-            ['X-KBC-ManageApiToken' => self::API_TOKEN],
+            ['Accept' => 'application/json', 'X-KBC-ManageApiToken' => self::API_TOKEN],
             null,
             $requestsHistory[0]['request'],
         );
@@ -71,6 +71,7 @@ class ManagerTest extends TestCase
             self::BASE_URL . '/manage/ex-dropbox',
             [
                 'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'X-KBC-ManageApiToken' => self::API_TOKEN,
             ],
             Json::encodeArray(['friendly_name' => 'Dropbox Extractor 2']),
@@ -107,6 +108,7 @@ class ManagerTest extends TestCase
             self::BASE_URL . '/manage',
             [
                 'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'X-KBC-ManageApiToken' => self::API_TOKEN,
             ],
             Json::encodeArray($details),
@@ -128,7 +130,7 @@ class ManagerTest extends TestCase
         self::assertRequestEquals(
             'DELETE',
             self::BASE_URL . '/manage/ex-dropbox',
-            ['X-KBC-ManageApiToken' => self::API_TOKEN],
+            ['Accept' => 'application/json', 'X-KBC-ManageApiToken' => self::API_TOKEN],
             null,
             $requestsHistory[0]['request'],
         );
