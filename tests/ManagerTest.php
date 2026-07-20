@@ -255,4 +255,13 @@ class ManagerTest extends TestCase
 
         new Manager(self::BASE_URL, ''); // @phpstan-ignore-line
     }
+
+    public function testManageTokenIsOptional(): void
+    {
+        // With no manage token the client falls back to the Kubernetes ServiceAccount
+        // authenticator; construction must succeed (the SA token is read lazily, per request).
+        $client = new Manager(self::BASE_URL);
+
+        self::assertInstanceOf(Manager::class, $client);
+    }
 }
