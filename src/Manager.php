@@ -142,6 +142,45 @@ class Manager
     }
 
     /**
+     * The token comes back encrypted for the given project and component.
+     *
+     * @return array{"#token": non-empty-string, expiresAt: string}
+     * @throws ClientException
+     */
+    public function mintOrganizationGitHubAppToken(
+        string $organizationId,
+        string $projectId,
+        string $componentId,
+        string $repository,
+    ): array {
+        $data = $this->apiClient->sendRequestAndMapResponse(
+            new Request(
+                'POST',
+                'organization-credentials/token',
+                self::JSON_HEADERS,
+                Json::encodeArray([
+                    'organizationId' => $organizationId,
+                    'projectId' => $projectId,
+                    'componentId' => $componentId,
+                    'repository' => $repository,
+                ]),
+            ),
+            ArrayResponse::class,
+        )->data;
+
+        $encryptedToken = $data['#token'] ?? null;
+        $expiresAt = $data['expiresAt'] ?? null;
+        if (!is_string($encryptedToken) || $encryptedToken === '' || !is_string($expiresAt)) {
+            throw new ClientException('OAuth API returned an invalid GitHub App token response.');
+        }
+
+        return [
+            '#token' => $encryptedToken,
+            'expiresAt' => $expiresAt,
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $details
      */
     protected function validateApiDetails(array $details): void

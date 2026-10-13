@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\OAuthV2Api\Tests;
 
+use Generator;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Keboola\ApiClientBase\Json;
@@ -238,6 +241,167 @@ class ManagerTest extends TestCase
         $this->expectExceptionMessage('Really bad server error');
 
         $client->listComponents();
+    }
+
+    public function testMintOrganizationGitHubAppToken(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
+                '#token' => 'KBC::ProjectSecure::encrypted-token',
+                'expiresAt' => '2026-01-01T12:00:00+00:00',
+            ])),
+        ]);
+
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $result = $client->mintOrganizationGitHubAppToken(
+            '123',
+            '456',
+            'keboola.dbt-transformation',
+            'https://github.com/keboola/dbt-project',
+        );
+
+        self::assertSame(
+            [
+                '#token' => 'KBC::ProjectSecure::encrypted-token',
+                'expiresAt' => '2026-01-01T12:00:00+00:00',
+            ],
+            $result,
+        );
+        self::assertCount(1, $requestsHistory);
+        self::assertRequestEquals(
+            'POST',
+            self::BASE_URL . '/organization-credentials/token',
+            [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'X-KBC-ManageApiToken' => self::API_TOKEN,
+            ],
+            Json::encodeArray([
+                'organizationId' => '123',
+                'projectId' => '456',
+                'componentId' => 'keboola.dbt-transformation',
+                'repository' => 'https://github.com/keboola/dbt-project',
+            ]),
+            $requestsHistory[0]['request'],
+        );
+    }
+
+    /**
+     * @dataProvider mintErrorStatusCodeProvider
+     */
+    public function testMintOrganizationGitHubAppTokenPassesErrorStatusCode(int $statusCode): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response($statusCode, ['Content-Type' => 'application/json'], Json::encodeArray([
+                'error' => 'Some error',
+                'code' => $statusCode,
+                'message' => 'Repository is not covered by the installation',
+            ])),
+        ]);
+
+        $client = new Manager(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 0,
+            requestHandler: $requestHandler(...),
+        );
+
+        try {
+            $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
+            self::fail('ClientException was not thrown');
+        } catch (ClientException $e) {
+            self::assertSame($statusCode, $e->getStatusCode());
+            self::assertSame(
+                'OAuth API error: Repository is not covered by the installation',
+                $e->getMessage(),
+            );
+        }
+        self::assertCount(1, $requestsHistory);
+    }
+
+    public static function mintErrorStatusCodeProvider(): Generator
+    {
+        yield 'bad request' => [400];
+        yield 'unauthorized' => [401];
+        yield 'forbidden' => [403];
+        yield 'not found' => [404];
+        yield 'precondition failed' => [412];
+        yield 'unprocessable entity' => [422];
+        yield 'server error' => [500];
+        yield 'service unavailable' => [503];
+    }
+
+    public function testMintOrganizationGitHubAppTokenConnectionErrorHasNoStatusCode(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new ConnectException(
+                'cURL error 28: Connection timed out',
+                new Request('POST', self::BASE_URL . '/organization-credentials/token'),
+            ),
+        ]);
+
+        $client = new Manager(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 0,
+            requestHandler: $requestHandler(...),
+        );
+
+        try {
+            $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
+            self::fail('ClientException was not thrown');
+        } catch (ClientException $e) {
+            self::assertNull($e->getStatusCode());
+            self::assertStringContainsString('cURL error 28', $e->getMessage());
+        }
+    }
+
+    /**
+     * @dataProvider invalidMintResponseProvider
+     */
+    public function testMintOrganizationGitHubAppTokenInvalidResponse(
+        string $responseBody,
+        string $expectedMessage,
+    ): void {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], $responseBody),
+        ]);
+
+        $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
+    }
+
+    public static function invalidMintResponseProvider(): Generator
+    {
+        $invalidResponseMessage = 'OAuth API returned an invalid GitHub App token response.';
+
+        yield 'missing token' => [
+            Json::encodeArray(['expiresAt' => '2026-01-01T12:00:00+00:00']),
+            $invalidResponseMessage,
+        ];
+        yield 'empty token' => [
+            Json::encodeArray(['#token' => '', 'expiresAt' => '2026-01-01T12:00:00+00:00']),
+            $invalidResponseMessage,
+        ];
+        yield 'token is not a string' => [
+            Json::encodeArray(['#token' => 123, 'expiresAt' => '2026-01-01T12:00:00+00:00']),
+            $invalidResponseMessage,
+        ];
+        yield 'missing expiresAt' => [
+            Json::encodeArray(['#token' => 'KBC::ProjectSecure::encrypted-token']),
+            $invalidResponseMessage,
+        ];
+        yield 'expiresAt is not a string' => [
+            Json::encodeArray(['#token' => 'KBC::ProjectSecure::encrypted-token', 'expiresAt' => null]),
+            $invalidResponseMessage,
+        ];
+        yield 'empty list' => ['[]', $invalidResponseMessage];
+        yield 'not JSON' => ['not json', 'Response is not valid JSON'];
     }
 
     public function testEmptyBaseUrlThrows(): void
