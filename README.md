@@ -52,7 +52,7 @@ $manager = new Manager('https://oauth.keboola.com');
 
 #### GitHub App installation token
 
-`mintOrganizationGitHubAppToken()` gets a short-lived GitHub App installation token for one
+`mintOrganizationToken()` gets a short-lived GitHub App installation token for one
 repository of the organization's GitHub connection. The endpoint accepts only an application
 identity (application token or ServiceAccount token), never a Storage API token. The returned
 `#token` is a `KBC::ProjectSecure::` cipher for the given project and component.
@@ -65,7 +65,7 @@ $manager = new Manager(
     backoffMaxTries: 0,
 );
 
-$token = $manager->mintOrganizationGitHubAppToken(
+$token = $manager->mintOrganizationToken(
     organizationId: '123',
     projectId: '456',
     componentId: 'keboola.dbt-transformation',

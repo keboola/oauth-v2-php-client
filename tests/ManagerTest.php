@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Keboola\OAuthV2Api\Tests;
 
 use Generator;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Keboola\ApiClientBase\Json;
@@ -243,7 +241,7 @@ class ManagerTest extends TestCase
         $client->listComponents();
     }
 
-    public function testMintOrganizationGitHubAppToken(): void
+    public function testMintOrganizationToken(): void
     {
         $requestHandler = self::createRequestHandler($requestsHistory, [
             new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray([
@@ -254,7 +252,7 @@ class ManagerTest extends TestCase
 
         $client = new Manager(self::BASE_URL, self::API_TOKEN, requestHandler: $requestHandler(...));
 
-        $result = $client->mintOrganizationGitHubAppToken(
+        $result = $client->mintOrganizationToken(
             '123',
             '456',
             'keboola.dbt-transformation',
@@ -287,11 +285,9 @@ class ManagerTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider mintErrorStatusCodeProvider
-     */
-    public function testMintOrganizationGitHubAppTokenPassesErrorStatusCode(int $statusCode): void
+    public function testMintOrganizationTokenPassesErrorStatusCode(): void
     {
+        $statusCode = 422;
         $requestHandler = self::createRequestHandler($requestsHistory, [
             new Response($statusCode, ['Content-Type' => 'application/json'], Json::encodeArray([
                 'error' => 'Some error',
@@ -308,7 +304,7 @@ class ManagerTest extends TestCase
         );
 
         try {
-            $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
+            $client->mintOrganizationToken('123', '456', 'keboola.dbt-transformation', 'repo');
             self::fail('ClientException was not thrown');
         } catch (ClientException $e) {
             self::assertSame($statusCode, $e->getStatusCode());
@@ -320,47 +316,10 @@ class ManagerTest extends TestCase
         self::assertCount(1, $requestsHistory);
     }
 
-    public static function mintErrorStatusCodeProvider(): Generator
-    {
-        yield 'bad request' => [400];
-        yield 'unauthorized' => [401];
-        yield 'forbidden' => [403];
-        yield 'not found' => [404];
-        yield 'precondition failed' => [412];
-        yield 'unprocessable entity' => [422];
-        yield 'server error' => [500];
-        yield 'service unavailable' => [503];
-    }
-
-    public function testMintOrganizationGitHubAppTokenConnectionErrorHasNoStatusCode(): void
-    {
-        $requestHandler = self::createRequestHandler($requestsHistory, [
-            new ConnectException(
-                'cURL error 28: Connection timed out',
-                new Request('POST', self::BASE_URL . '/organization-credentials/token'),
-            ),
-        ]);
-
-        $client = new Manager(
-            self::BASE_URL,
-            self::API_TOKEN,
-            backoffMaxTries: 0,
-            requestHandler: $requestHandler(...),
-        );
-
-        try {
-            $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
-            self::fail('ClientException was not thrown');
-        } catch (ClientException $e) {
-            self::assertNull($e->getStatusCode());
-            self::assertStringContainsString('cURL error 28', $e->getMessage());
-        }
-    }
-
     /**
      * @dataProvider invalidMintResponseProvider
      */
-    public function testMintOrganizationGitHubAppTokenInvalidResponse(
+    public function testMintOrganizationTokenInvalidResponse(
         string $responseBody,
         string $expectedMessage,
     ): void {
@@ -373,7 +332,7 @@ class ManagerTest extends TestCase
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage($expectedMessage);
 
-        $client->mintOrganizationGitHubAppToken('123', '456', 'keboola.dbt-transformation', 'repo');
+        $client->mintOrganizationToken('123', '456', 'keboola.dbt-transformation', 'repo');
     }
 
     public static function invalidMintResponseProvider(): Generator
