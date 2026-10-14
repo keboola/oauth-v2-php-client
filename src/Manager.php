@@ -147,7 +147,7 @@ class Manager
      * @return array{"#token": non-empty-string, expiresAt: string}
      * @throws ClientException
      */
-    public function mintOrganizationGitHubAppToken(
+    public function mintOrganizationToken(
         string $organizationId,
         string $projectId,
         string $componentId,
