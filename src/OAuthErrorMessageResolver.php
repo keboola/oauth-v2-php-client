@@ -18,10 +18,13 @@ final class OAuthErrorMessageResolver implements ErrorMessageResolverInterface
             return null;
         }
 
-        if (empty($data['message']) || !is_string($data['message'])) {
-            return null;
+        // oauth-service puts the reason in "error"; "message" takes precedence when both are set
+        foreach (['message', 'error'] as $field) {
+            if (!empty($data[$field]) && is_string($data[$field])) {
+                return 'OAuth API error: ' . $data[$field];
+            }
         }
 
-        return 'OAuth API error: ' . $data['message'];
+        return null;
     }
 }
