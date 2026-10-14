@@ -24,9 +24,27 @@ class OAuthErrorMessageResolverTest extends TestCase
         self::assertNull($resolver('not json at all', 500));
     }
 
-    public function testReturnsNullWhenNoMessageField(): void
+    public function testReturnsPrefixedErrorWhenNoMessageField(): void
     {
         $resolver = new OAuthErrorMessageResolver();
-        self::assertNull($resolver('{"error":"User error"}', 400));
+        self::assertSame(
+            'OAuth API error: Repository is not covered by the installation',
+            $resolver('{"error":"Repository is not covered by the installation","code":422,"status":"error"}', 422),
+        );
+    }
+
+    public function testPrefersMessageOverError(): void
+    {
+        $resolver = new OAuthErrorMessageResolver();
+        self::assertSame(
+            'OAuth API error: Something failed',
+            $resolver('{"error":"User error","message":"Something failed"}', 400),
+        );
+    }
+
+    public function testReturnsNullWhenNoMessageOrErrorField(): void
+    {
+        $resolver = new OAuthErrorMessageResolver();
+        self::assertNull($resolver('{"code":400}', 400));
     }
 }
